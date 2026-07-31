@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viral YouTube Thumbnail Maker - Pro</title>
+    <title>Cookiebaits' Viral YouTube Thumbnail Maker Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
     <!-- html2canvas for exporting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Imgly for client-side Background Removal -->
     <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/dist/imgly-background-removal.js"></script>
+    <!-- Local CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,23 +18,28 @@
         <h2>Thumbnail Maker Pro</h2>
         
         <div class="control-group">
-            <label>1. Set Canvas Background</label>
-            <input type="file" id="bg-upload" accept="image/*">
+            <label>1. Add Foreground Images</label>
+            <input type="file" id="fg-upload" accept="image/*" multiple>
+        </div>
+
+        <hr>
+
+        <div class="control-group">
+            <label>2. Add Mid-ground Image</label>
+            <input type="file" id="mg-upload" accept="image/*" multiple>
         </div>
         
         <hr>
 
         <div class="control-group">
-            <label>2. Add Foreground Images</label>
-            <input type="file" id="fg-upload" accept="image/*" multiple>
-            <button id="remove-bg-btn" disabled>🪄 Remove BG from Selected</button>
-            <div id="loading-indicator" class="hidden">Downloading AI Model (first run takes a moment)...</div>
+            <label>3. Set Canvas Background</label>
+            <input type="file" id="bg-upload" accept="image/*">
         </div>
 
         <hr>
 
         <div class="control-group">
-            <label>3. Add Viral Text</label>
+            <label>4. Add Viral Text</label>
             <input type="text" id="text-input" placeholder="Enter hook text...">
             <select id="text-style">
                 <option value="style-beast">The Beast (Yellow/3D)</option>
@@ -48,8 +54,11 @@
         <hr>
 
         <div class="control-group">
-            <label>4. Layer Controls (Select Item First)</label>
-            <div style="display: flex; gap: 10px;">
+            <label>5. Layer Controls (Select Item First)</label>
+            <button id="remove-bg-btn" disabled>🪄 Remove BG from Selected</button>
+            <div id="loading-indicator" class="hidden">Downloading AI Model (takes a moment)...</div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
                 <button id="btn-front" style="flex: 1;" disabled>Move to Front</button>
                 <button id="btn-back" style="flex: 1;" disabled>Move to Back</button>
             </div>
@@ -59,7 +68,7 @@
         <hr>
 
         <div class="control-group">
-            <label>5. Frames & Filters</label>
+            <label>6. Frames & Filters</label>
             <select id="frame-select">
                 <option value="none">No Overlay</option>
                 <option value="frame-rec">Camcorder "REC"</option>
@@ -83,7 +92,6 @@
 
     <!-- Large Canvas Workspace -->
     <div class="workspace-container">
-        <!-- The canvas size is hardcoded to 1280x720, but scales visually via JS -->
         <div id="thumbnail-canvas">
             <div id="bg-layer"></div>
             
@@ -102,6 +110,7 @@
         </div>
     </div>
 
+    <!-- Local JS -->
     <script src="script.js"></script>
 </body>
 </html>
