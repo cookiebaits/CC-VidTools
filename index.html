@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viral YouTube Thumbnail Maker - Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <!-- html2canvas for exporting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Imgly for client-side Background Removal -->
+    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/dist/imgly-background-removal.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Controls Sidebar -->
+    <div class="controls">
+        <h2>Thumbnail Maker Pro</h2>
+        
+        <div class="control-group">
+            <label>1. Set Canvas Background</label>
+            <input type="file" id="bg-upload" accept="image/*">
+        </div>
+        
+        <hr>
+
+        <div class="control-group">
+            <label>2. Add Foreground Images</label>
+            <input type="file" id="fg-upload" accept="image/*" multiple>
+            <button id="remove-bg-btn" disabled>🪄 Remove BG from Selected</button>
+            <div id="loading-indicator" class="hidden">Downloading AI Model (first run takes a moment)...</div>
+        </div>
+
+        <hr>
+
+        <div class="control-group">
+            <label>3. Add Viral Text</label>
+            <input type="text" id="text-input" placeholder="Enter hook text...">
+            <select id="text-style">
+                <option value="style-beast">The Beast (Yellow/3D)</option>
+                <option value="style-impact">Classic Impact (White/Black)</option>
+                <option value="style-glow">Neon Glow (Cyan)</option>
+                <option value="style-news">Breaking News (Red Box)</option>
+                <option value="style-glitch">Cyber Glitch</option>
+            </select>
+            <button id="add-text-btn">+ Add Text</button>
+        </div>
+
+        <hr>
+
+        <div class="control-group">
+            <label>4. Layer Controls (Select Item First)</label>
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-front" style="flex: 1;" disabled>Move to Front</button>
+                <button id="btn-back" style="flex: 1;" disabled>Move to Back</button>
+            </div>
+            <button id="btn-delete" style="background: #e74c3c; margin-top: 5px;" disabled>Delete Selected</button>
+        </div>
+
+        <hr>
+
+        <div class="control-group">
+            <label>5. Frames & Filters</label>
+            <select id="frame-select">
+                <option value="none">No Overlay</option>
+                <option value="frame-rec">Camcorder "REC"</option>
+                <option value="frame-vignette">Dark Vignette (Focus)</option>
+                <option value="frame-border">Viral Yellow Border</option>
+                <option value="frame-speed">Anime Speed Lines</option>
+            </select>
+            
+            <label style="margin-top: 10px;">Background Filter</label>
+            <select id="filter-select">
+                <option value="none">Normal</option>
+                <option value="grayscale(100%)">Grayscale</option>
+                <option value="blur(5px)">Blurred</option>
+                <option value="saturate(200%)">Deep Fried (Super Saturated)</option>
+                <option value="sepia(100%)">Vintage</option>
+            </select>
+        </div>
+
+        <button class="btn-export" id="export-btn">Download Thumbnail</button>
+    </div>
+
+    <!-- Large Canvas Workspace -->
+    <div class="workspace-container">
+        <!-- The canvas size is hardcoded to 1280x720, but scales visually via JS -->
+        <div id="thumbnail-canvas">
+            <div id="bg-layer"></div>
+            
+            <!-- Draggable items (images and text) will be injected here -->
+            <div id="drag-layers"></div>
+
+            <!-- Overlays stay permanently on top -->
+            <div id="overlays-container">
+                <div id="frame-rec" class="overlay">
+                    <div class="rec-text"><div class="rec-dot"></div> REC</div>
+                </div>
+                <div id="frame-vignette" class="overlay"></div>
+                <div id="frame-border" class="overlay"></div>
+                <div id="frame-speed" class="overlay speed-lines"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
