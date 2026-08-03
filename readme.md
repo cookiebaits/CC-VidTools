@@ -1,8 +1,6 @@
 # 🎨 Cookiebaits' Viral YouTube Thumbnail Maker Pro
 
-![Live Demo](https://img.shields.io/badge/Live_Demo-Click_Here-success?style=for-the-badge)
-
-**[👉 CLICK HERE TO USE THE APP LIVE 👈](https://cookiebaits.github.io/thumbnail/)**
+**[👉 CLICK HERE TO USE THE APP LIVE 👈](https://cookiebaits.github.io/CCvidcompressthumbnail)**
 
 ---
 
