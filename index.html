@@ -192,6 +192,40 @@
         .btn-success { background-color: var(--success); }
         .btn-success:hover:not(:disabled) { background-color: #059669; }
 
+        /* Emoji Picker Styles */
+        .emoji-help {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .emoji-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            background: #ffffff;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .emoji-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 0.35rem 0.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s, border-color 0.2s;
+        }
+
+        .emoji-btn:hover {
+            background-color: #f1f5f9;
+            border-color: var(--border-color);
+            transform: scale(1.15);
+        }
+
         /* Metadata & Progress */
         #video-meta-info {
             display: none;
@@ -370,6 +404,29 @@
                     </select>
                 </div>
 
+                <!-- Quick Emojis Section -->
+                <div class="full-width">
+                    <label>Quick Emojis</label>
+                    <span class="emoji-help">Click an emoji to instantly copy it, then paste it into your text fields below!</span>
+                    <div class="emoji-list">
+                        <button type="button" class="emoji-btn">🚨</button>
+                        <button type="button" class="emoji-btn">😱</button>
+                        <button type="button" class="emoji-btn">🤯</button>
+                        <button type="button" class="emoji-btn">🔥</button>
+                        <button type="button" class="emoji-btn">🛑</button>
+                        <button type="button" class="emoji-btn">⚠️</button>
+                        <button type="button" class="emoji-btn">💸</button>
+                        <button type="button" class="emoji-btn">📉</button>
+                        <button type="button" class="emoji-btn">📈</button>
+                        <button type="button" class="emoji-btn">❌</button>
+                        <button type="button" class="emoji-btn">🔴</button>
+                        <button type="button" class="emoji-btn">💀</button>
+                        <button type="button" class="emoji-btn">🤡</button>
+                        <button type="button" class="emoji-btn">👀</button>
+                        <button type="button" class="emoji-btn">🤫</button>
+                    </div>
+                </div>
+
                 <div>
                     <label>Top Text</label>
                     <input type="text" id="thumb-text-top" placeholder="e.g., I WAS WRONG">
@@ -445,6 +502,22 @@
 
         let bgImage = null;
 
+        // Emoji Click-to-Copy Logic
+        const emojiBtns = document.querySelectorAll('.emoji-btn');
+        emojiBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const emoji = e.target.innerText;
+                try {
+                    await navigator.clipboard.writeText(emoji);
+                    const originalText = e.target.innerText;
+                    e.target.innerText = '✅';
+                    setTimeout(() => { e.target.innerText = originalText; }, 800);
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                }
+            });
+        });
+
         // Handle Image Upload
         thumbBgUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -519,6 +592,7 @@
             }
 
             // 3. Draw Text (YouTube Viral Style: Impact font, large stroke, uppercase)
+            // Note: Keeping native emoji rendering intact, uppercase logic applies globally to text
             const topText = thumbTextTop.value.toUpperCase();
             const bottomText = thumbTextBottom.value.toUpperCase();
             
