@@ -3,114 +3,511 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cookiebaits' Viral YouTube Thumbnail Maker Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
-    <!-- html2canvas for exporting -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Imgly for client-side Background Removal -->
-    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/dist/imgly-background-removal.js"></script>
-    <!-- Local CSS -->
-    <link rel="stylesheet" href="style.css">
+    <title>CookieClip Studio</title>
+    <script src="coi-serviceworker.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        /* Tab Navigation */
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background-color: #ff0000;
+            color: white;
+            box-shadow: 0 4px 6px rgba(255, 0, 0, 0.2);
+        }
+        .tab-btn:hover:not(.active) {
+            background-color: #d1d5db;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        input[type="file"], select, input[type="text"] {
+            margin: 10px 0;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        /* Compressor Styles */
+        .trim-controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .trim-controls label {
+            display: flex; flex-direction: column; font-size: 14px; font-weight: 500; width: 100%;
+        }
+
+        .action-btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .action-btn:hover { background-color: #1d4ed8; }
+        .action-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+        #progress-container { margin-top: 20px; display: none; }
+        progress { width: 100%; height: 20px; }
+        .download-link { display: none; margin-top: 20px; color: #059669; font-weight: bold; text-decoration: none; font-size: 18px; }
+        .message { margin-top: 10px; font-size: 14px; color: #4b5563; }
+        .security-badge { font-size: 12px; color: #059669; background: #d1fae5; padding: 4px 8px; border-radius: 12px; display: inline-block; margin-bottom: 10px; }
+
+        /* Thumbnail Maker Styles */
+        #thumbnail-view { display: none; }
+        canvas {
+            width: 100%;
+            height: auto;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            margin-top: 20px;
+            background-color: #f3f4f6;
+        }
+        .thumb-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: left;
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        .thumb-controls label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 5px; }
+        .full-width { grid-column: span 2; }
+    </style>
 </head>
 <body>
-    <!-- Controls Sidebar -->
-    <div class="controls">
-        <h2>Thumbnail Maker Pro</h2>
-        
-        <div class="control-group">
-            <label>1. Add Foreground Images</label>
-            <input type="file" id="fg-upload" accept="image/*" multiple>
-        </div>
 
-        <hr>
-
-        <div class="control-group">
-            <label>2. Add Mid-ground Image</label>
-            <input type="file" id="mg-upload" accept="image/*" multiple>
-        </div>
-        
-        <hr>
-
-        <div class="control-group">
-            <label>3. Set Canvas Background</label>
-            <input type="file" id="bg-upload" accept="image/*">
-        </div>
-
-        <hr>
-
-        <div class="control-group">
-            <label>4. Add Viral Text</label>
-            <input type="text" id="text-input" placeholder="Enter hook text...">
-            <select id="text-style">
-                <option value="style-beast">The Beast (Yellow/3D)</option>
-                <option value="style-impact">Classic Impact (White/Black)</option>
-                <option value="style-glow">Neon Glow (Cyan)</option>
-                <option value="style-news">Breaking News (Red Box)</option>
-                <option value="style-glitch">Cyber Glitch</option>
-            </select>
-            <button id="add-text-btn">+ Add Text</button>
-        </div>
-
-        <hr>
-
-        <div class="control-group">
-            <label>5. Layer Controls (Select Item First)</label>
-            <button id="remove-bg-btn" disabled>🪄 Remove BG from Selected</button>
-            <div id="loading-indicator" class="hidden">Downloading AI Model (takes a moment)...</div>
-            
-            <div style="display: flex; gap: 10px; margin-top: 5px;">
-                <button id="btn-front" style="flex: 1;" disabled>Move to Front</button>
-                <button id="btn-back" style="flex: 1;" disabled>Move to Back</button>
-            </div>
-            <button id="btn-delete" style="background: #e74c3c; margin-top: 5px;" disabled>Delete Selected</button>
-        </div>
-
-        <hr>
-
-        <div class="control-group">
-            <label>6. Frames & Filters</label>
-            <select id="frame-select">
-                <option value="none">No Overlay</option>
-                <option value="frame-rec">Camcorder "REC"</option>
-                <option value="frame-vignette">Dark Vignette (Focus)</option>
-                <option value="frame-border">Viral Yellow Border</option>
-                <option value="frame-speed">Anime Speed Lines</option>
-            </select>
-            
-            <label style="margin-top: 10px;">Background Filter</label>
-            <select id="filter-select">
-                <option value="none">Normal</option>
-                <option value="grayscale(100%)">Grayscale</option>
-                <option value="blur(5px)">Blurred</option>
-                <option value="saturate(200%)">Deep Fried (Super Saturated)</option>
-                <option value="sepia(100%)">Vintage</option>
-            </select>
-        </div>
-
-        <button class="btn-export" id="export-btn">Download Thumbnail</button>
+    <div class="tab-container">
+        <button id="tab-compressor" class="tab-btn active">🎥 Video Compressor</button>
+        <button id="tab-thumbnail" class="tab-btn">🖼️ Thumbnail Maker</button>
     </div>
 
-    <!-- Large Canvas Workspace -->
-    <div class="workspace-container">
-        <div id="thumbnail-canvas">
-            <div id="bg-layer"></div>
-            
-            <!-- Draggable items (images and text) will be injected here -->
-            <div id="drag-layers"></div>
-
-            <!-- Overlays stay permanently on top -->
-            <div id="overlays-container">
-                <div id="frame-rec" class="overlay">
-                    <div class="rec-text"><div class="rec-dot"></div> REC</div>
-                </div>
-                <div id="frame-vignette" class="overlay"></div>
-                <div id="frame-border" class="overlay"></div>
-                <div id="frame-speed" class="overlay speed-lines"></div>
-            </div>
+    <!-- VIDEO COMPRESSOR VIEW -->
+    <div id="compressor-view" class="card">
+        <span class="security-badge">🔒 Processes strictly offline in RAM. Clears when tab closes.</span>
+        <h2>CookieClip Compressor</h2>
+        <p>Compress and trim your videos right in your browser for YouTube.</p>
+        
+        <input type="file" id="uploader" accept="video/*">
+        
+        <div class="trim-controls">
+            <label>Cut from Start (seconds)<input type="number" id="trim-start" value="0" min="0" step="0.1"></label>
+            <label>Cut from End (seconds)<input type="number" id="trim-end" value="0" min="0" step="0.1"></label>
         </div>
+
+        <button id="convert-btn" class="action-btn" disabled>Load FFmpeg to Start</button>
+
+        <div id="progress-container">
+            <p id="status-text">Compressing...</p>
+            <progress id="progress-bar" value="0" max="100"></progress>
+        </div>
+
+        <a id="download-link" class="download-link" href="#" download="compressed_for_youtube.mp4">⬇️ Download Compressed Video</a>
+        <p id="message" class="message"></p>
     </div>
 
-    <!-- Local JS -->
-    <script src="script.js"></script>
-</body>
-</html>
+    <!-- THUMBNAIL MAKER VIEW -->
+    <div id="thumbnail-view" class="card">
+        <h2>Viral Thumbnail Maker</h2>
+        <p>Create high-CTR YouTube thumbnails instantly.</p>
+
+        <div class="thumb-controls">
+            <div class="full-width">
+                <label>1. Background Image</label>
+                <input type="file" id="thumb-bg-upload" accept="image/png, image/jpeg, image/webp, image/gif">
+            </div>
+
+            <div class="full-width">
+                <label>2. Viral Text Presets</label>
+                <select id="thumb-preset">
+                    <option value="">-- Custom Text --</option>
+                    <option value="SCAM EXPOSED!|WATCH THIS FIRST">Scam Exposed!</option>
+                    <option value="I WAS WRONG.|THE TRUTH!">I Was Wrong / The Truth</option>
+                    <option value="DO NOT BUY THIS!|100% HONEST REVIEW">Do Not Buy This!</option>
+                    <option value="THEY TRIED TO HIDE THIS|🚨🚨🚨">They Tried to Hide This</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Top Text</label>
+                <input type="text" id="thumb-text-top" placeholder="e.g., I WAS WRONG">
+            </div>
+            <div>
+                <label>Bottom Text</label>
+                <input type="text" id="thumb-text-bottom" placeholder="e.g., THE TRUTH">
+            </div>
+
+            <div>
+                <label>Text Color</label>
+                <select id="thumb-text-color">
+                    <option value="#FFFF00">Viral Yellow</option>
+                    <option value="#FFFFFF">Pure White</option>
+                    <option value="#00FF00">Neon Green</option>
+                </select>
+            </div>
+            <div>
+                <label>Viral Features</label>
+                <select id="thumb-sticker">
+                    <option value="">None</option>
+                    <option value="border">🔴 Red Clickbait Border</option>
+                    <option value="arrow">➡️ Huge Red Arrow</option>
+                    <option value="shock">😱 Shocked Emoji</option>
+                    <option value="circle">⭕ Red Circle</option>
+                </select>
+            </div>
+        </div>
+
+        <canvas id="thumb-canvas" width="1280" height="720"></canvas>
+        <button id="download-thumb-btn" class="action-btn" style="background-color: #059669;">⬇️ Download Thumbnail (JPG)</button>
+    </div>
+
+    <script type="module">
+        import { FFmpeg } from '[https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js](https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js)';
+        import { fetchFile } from '[https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js](https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js)';
+
+        // ==========================================
+        // TAB NAVIGATION LOGIC
+        // ==========================================
+        const tabCompressor = document.getElementById('tab-compressor');
+        const tabThumbnail = document.getElementById('tab-thumbnail');
+        const viewCompressor = document.getElementById('compressor-view');
+        const viewThumbnail = document.getElementById('thumbnail-view');
+
+        tabCompressor.addEventListener('click', () => {
+            tabCompressor.classList.add('active');
+            tabThumbnail.classList.remove('active');
+            viewCompressor.style.display = 'block';
+            viewThumbnail.style.display = 'none';
+        });
+
+        tabThumbnail.addEventListener('click', () => {
+            tabThumbnail.classList.add('active');
+            tabCompressor.classList.remove('active');
+            viewThumbnail.style.display = 'block';
+            viewCompressor.style.display = 'none';
+            drawThumbnail(); // Initial render
+        });
+
+        // ==========================================
+        // THUMBNAIL MAKER LOGIC
+        // ==========================================
+        const canvas = document.getElementById('thumb-canvas');
+        const ctx = canvas.getContext('2d');
+        const thumbBgUpload = document.getElementById('thumb-bg-upload');
+        const thumbPreset = document.getElementById('thumb-preset');
+        const thumbTextTop = document.getElementById('thumb-text-top');
+        const thumbTextBottom = document.getElementById('thumb-text-bottom');
+        const thumbTextColor = document.getElementById('thumb-text-color');
+        const thumbSticker = document.getElementById('thumb-sticker');
+        const downloadThumbBtn = document.getElementById('download-thumb-btn');
+
+        let bgImage = null;
+
+        // Handle Image Upload
+        thumbBgUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    bgImage = img;
+                    drawThumbnail();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Handle Presets
+        thumbPreset.addEventListener('change', (e) => {
+            if (e.target.value) {
+                const parts = e.target.value.split('|');
+                thumbTextTop.value = parts[0];
+                thumbTextBottom.value = parts[1];
+            }
+            drawThumbnail();
+        });
+
+        // Event Listeners for live preview
+        thumbTextTop.addEventListener('input', drawThumbnail);
+        thumbTextBottom.addEventListener('input', drawThumbnail);
+        thumbTextColor.addEventListener('change', drawThumbnail);
+        thumbSticker.addEventListener('change', drawThumbnail);
+
+        function drawThumbnail() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 1. Draw Background
+            if (bgImage) {
+                // Calculate scale to cover canvas
+                const scale = Math.max(canvas.width / bgImage.width, canvas.height / bgImage.height);
+                const x = (canvas.width / 2) - (bgImage.width / 2) * scale;
+                const y = (canvas.height / 2) - (bgImage.height / 2) * scale;
+                ctx.drawImage(bgImage, x, y, bgImage.width * scale, bgImage.height * scale);
+            } else {
+                ctx.fillStyle = '#1f2937'; // Dark gray placeholder
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#4b5563';
+                ctx.font = '40px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Upload a background image to start', canvas.width/2, canvas.height/2);
+            }
+
+            // 2. Draw Viral Features (Stickers/Borders)
+            const sticker = thumbSticker.value;
+            if (sticker === 'border') {
+                ctx.strokeStyle = '#FF0000';
+                ctx.lineWidth = 30;
+                ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+            } else if (sticker === 'arrow') {
+                ctx.font = '250px Arial';
+                ctx.fillText('➡️', canvas.width / 4, canvas.height / 2 + 80);
+            } else if (sticker === 'shock') {
+                ctx.font = '250px Arial';
+                ctx.fillText('😱', canvas.width - 200, canvas.height / 2 + 80);
+            } else if (sticker === 'circle') {
+                ctx.strokeStyle = '#FF0000';
+                ctx.lineWidth = 20;
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, 200, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+
+            // 3. Draw Text (YouTube Viral Style: Impact font, large stroke, uppercase)
+            const topText = thumbTextTop.value.toUpperCase();
+            const bottomText = thumbTextBottom.value.toUpperCase();
+            
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 130px Impact, sans-serif';
+            ctx.fillStyle = thumbTextColor.value;
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 25; // Thick stroke for readability on busy backgrounds
+            ctx.lineJoin = 'round'; // Smooth edges on the stroke
+            
+            // Add slight drop shadow for extra pop
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 5;
+            ctx.shadowOffsetY = 5;
+
+            if (topText) {
+                ctx.strokeText(topText, canvas.width / 2, 160);
+                ctx.shadowColor = 'transparent'; // Turn off shadow for fill
+                ctx.fillText(topText, canvas.width / 2, 160);
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)'; // Turn back on
+            }
+            if (bottomText) {
+                ctx.strokeText(bottomText, canvas.width / 2, canvas.height - 60);
+                ctx.shadowColor = 'transparent';
+                ctx.fillText(bottomText, canvas.width / 2, canvas.height - 60);
+            }
+            
+            // Reset shadow so it doesn't affect next render cycle
+            ctx.shadowColor = 'transparent';
+        }
+
+        // Handle Download
+        downloadThumbBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'viral_thumbnail.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        });
+
+
+        // ==========================================
+        // VIDEO COMPRESSOR LOGIC (Original Code)
+        // ==========================================
+        const ffmpeg = new FFmpeg();
+        const uploader = document.getElementById('uploader');
+        const convertBtn = document.getElementById('convert-btn');
+        const message = document.getElementById('message');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const statusText = document.getElementById('status-text');
+        const downloadLink = document.getElementById('download-link');
+        
+        const trimStartInput = document.getElementById('trim-start');
+        const trimEndInput = document.getElementById('trim-end');
+
+        let currentObjectUrl = null;
+
+        const cleanupMemory = () => {
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+                currentObjectUrl = null;
+            }
+            try {
+                ffmpeg.deleteFile('input.mp4');
+                ffmpeg.deleteFile('output.mp4');
+            } catch (e) {}
+        };
+
+        window.addEventListener('beforeunload', cleanupMemory);
+
+        const getVideoDuration = (file) => {
+            return new Promise((resolve) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.onloadedmetadata = function() {
+                    URL.revokeObjectURL(video.src);
+                    resolve(video.duration);
+                }
+                video.src = URL.createObjectURL(file);
+            });
+        };
+
+        const getCachedFFmpegFile = async (url, type) => {
+            const cacheName = 'ffmpeg-engine-cache-v1';
+            const cache = await caches.open(cacheName);
+            let response = await cache.match(url);
+            
+            if (response) {
+                console.log(`Loaded FFmpeg ${type} from local cache.`);
+            } else {
+                console.log(`Downloading FFmpeg ${type} for the first time...`);
+                message.innerText = `Downloading FFmpeg engine (${type})... this only happens once!`;
+                response = await fetch(url);
+                if (response.ok) {
+                    await cache.put(url, response.clone());
+                } else {
+                    throw new Error(`Failed to download ${type}`);
+                }
+            }
+            
+            const blob = await response.blob();
+            return URL.createObjectURL(blob);
+        };
+
+        const loadFFmpeg = async () => {
+            message.innerText = "Checking cache for FFmpeg engine...";
+            
+            try {
+                const coreURL = '[https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.js](https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.js)';
+                const wasmURL = '[https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.wasm](https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.wasm)';
+                
+                const cachedCoreURL = await getCachedFFmpegFile(coreURL, 'Core JS');
+                const cachedWasmURL = await getCachedFFmpegFile(wasmURL, 'WASM');
+
+                ffmpeg.on('progress', ({ progress }) => {
+                    const percent = Math.min(Math.max(Math.round(progress * 100), 0), 100);
+                    progressBar.value = percent;
+                    statusText.innerText = `Processing... ${percent}%`;
+                });
+
+                await ffmpeg.load({
+                    coreURL: cachedCoreURL,
+                    wasmURL: cachedWasmURL,
+                });
+
+                message.innerText = "Ready!";
+                convertBtn.innerText = "Compress & Trim Video";
+                convertBtn.disabled = false;
+
+                URL.revokeObjectURL(cachedCoreURL);
+                URL.revokeObjectURL(cachedWasmURL);
+
+            } catch (error) {
+                console.error(error);
+                message.innerText = "Error loading FFmpeg engine. Please check your connection and refresh.";
+            }
+        };
+
+        const processVideo = async () => {
+            const file = uploader.files[0];
+            if (!file) {
+                alert("Please select a video file first.");
+                return;
+            }
+
+            cleanupMemory();
+            downloadLink.style.display = "none";
+
+            const trimStart = parseFloat(trimStartInput.value) || 0;
+            const trimEnd = parseFloat(trimEndInput.value) || 0;
+            
+            const totalDuration = await getVideoDuration(file);
+            const durationToKeep = totalDuration - trimStart - trimEnd;
+
+            if (durationToKeep <= 0) {
+                alert("Your trim times remove the entire video! Please adjust the seconds.");
+                return;
+            }
+
+            convertBtn.disabled = true;
+            progressContainer.style.display = "block";
+            message.innerText = "Reading file into browser memory...";
+
+            await ffmpeg.writeFile('input.mp4', await fetchFile(file));
+
+            message.innerText = "Processing... Leave this tab open.";
+            
+            const ffmpegArgs = [];
+            if (trimStart > 0) ffmpegArgs.push('-ss', String(trimStart));
+            if (trimStart > 0 || trimEnd > 0) ffmpegArgs.push('-t', String(durationToKeep));
+
+            ffmpegArgs.push(
+                '-i', 'input.mp4',
+                '-c:v', 'libx264',
+                '-crf', '23', 
+                '-preset', 'veryfast',
+                '-c:a', 'aac',
+                '-b:a', '128k',
+                '-movflags', '+faststart',
+                'output.mp4'
+            );
+
+            await ffmpeg.exec(ffmpegArgs);
+
+            message.innerText = "Finalizing file...";
+            const data = await ffmpeg.readFile('output.mp4');
+            
+            currentObjectUrl = URL.create
