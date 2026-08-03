@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CookieClip Video Tools</title>
-    <!-- Keep this! Required for SharedArrayBuffer on GitHub Pages -->
+    <!-- Required for SharedArrayBuffer on GitHub Pages -->
     <script src="coi-serviceworker.js"></script> 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -400,7 +400,7 @@
                 </div>
             </div>
 
-            <button id="convert-btn" class="btn" disabled>Loading Engine...</button>
+            <button id="convert-btn" class="btn" disabled>Initializing Engine...</button>
 
             <div id="progress-container">
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
@@ -538,10 +538,10 @@
         </div>
     </div>
 
-    <!-- IMPORTANT: Added toBlobURL to the import list to fix GitHub Pages CORS error -->
+    <!-- Using jsdelivr for main imports to match the core bundle and prevent unpkg CORS drops -->
     <script type="module">
-        import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js';
-        import { fetchFile, toBlobURL } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
+        import { FFmpeg } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js';
+        import { fetchFile, toBlobURL } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js';
 
         // ==========================================
         // TAB NAVIGATION LOGIC
@@ -581,19 +581,15 @@
 
         let bgImage = null;
 
-        // Emoji Sidebar Click-to-Copy Logic
         const copyBtns = document.querySelectorAll('.copy-btn');
         copyBtns.forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const emoji = e.target.getAttribute('data-emoji');
                 try {
                     await navigator.clipboard.writeText(emoji);
-                    
-                    // Visual Feedback
                     const originalText = e.target.innerText;
                     e.target.innerText = 'Copied!';
                     e.target.classList.add('copied');
-                    
                     setTimeout(() => { 
                         e.target.innerText = originalText; 
                         e.target.classList.remove('copied');
@@ -604,23 +600,18 @@
             });
         });
 
-        // Handle Image Upload
         thumbBgUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
-                img.onload = () => {
-                    bgImage = img;
-                    drawThumbnail();
-                };
+                img.onload = () => { bgImage = img; drawThumbnail(); };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
         });
 
-        // Handle Presets
         thumbPreset.addEventListener('change', (e) => {
             if (e.target.value) {
                 const parts = e.target.value.split('|');
@@ -630,7 +621,6 @@
             drawThumbnail();
         });
 
-        // Event Listeners for live preview
         thumbTextTop.addEventListener('input', drawThumbnail);
         thumbTextBottom.addEventListener('input', drawThumbnail);
         thumbTextColor.addEventListener('change', drawThumbnail);
@@ -639,7 +629,6 @@
         function drawThumbnail() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // 1. Draw Background
             if (bgImage) {
                 const scale = Math.max(canvas.width / bgImage.width, canvas.height / bgImage.height);
                 const x = (canvas.width / 2) - (bgImage.width / 2) * scale;
@@ -654,7 +643,6 @@
                 ctx.fillText('Upload an image to begin', canvas.width/2, canvas.height/2);
             }
 
-            // 2. Draw Viral Features
             const sticker = thumbSticker.value;
             ctx.shadowColor = 'transparent'; 
             if (sticker === 'border') {
@@ -675,7 +663,6 @@
                 ctx.stroke();
             }
 
-            // 3. Draw Text
             const topText = thumbTextTop.value.toUpperCase();
             const bottomText = thumbTextBottom.value.toUpperCase();
             
@@ -774,7 +761,6 @@
 
         const updateEstimate = () => {
             if (!loadedVideoMeta) return;
-
             const trimStart = parseFloat(trimStartInput.value) || 0;
             const trimEnd = parseFloat(trimEndInput.value) || 0;
             const finalDuration = loadedVideoMeta.duration - trimStart - trimEnd;
@@ -810,16 +796,13 @@
                 loadedVideoMeta = null;
                 return;
             }
-
             message.innerText = "Reading metadata...";
             loadedVideoMeta = await getVideoMetadata(file);
             message.innerText = "";
-
             metaRes.innerText = `${loadedVideoMeta.width}x${loadedVideoMeta.height}`;
             metaDuration.innerText = formatSeconds(loadedVideoMeta.duration);
             trimStartInput.max = loadedVideoMeta.duration;
             trimEndInput.max = loadedVideoMeta.duration;
-            
             metaInfoBox.style.display = 'block';
             updateEstimate();
         });
@@ -827,7 +810,36 @@
         trimStartInput.addEventListener('input', updateEstimate);
         trimEndInput.addEventListener('input', updateEstimate);
 
+        // --- ENHANCED & BULLETPROOF ASSET LOADER ---
+        const getCachedFFmpegFile = async (url, type, mimeType) => {
+            const cacheName = 'ffmpeg-engine-cache-v1';
+            try {
+                const cache = await caches.open(cacheName);
+                let response = await cache.match(url);
+                
+                if (!response) {
+                    console.log(`Downloading ${type} for the first time...`);
+                    response = await fetch(url);
+                    if (response.ok) {
+                        await cache.put(url, response.clone());
+                    } else {
+                        throw new Error(`HTTP ${response.status} fetching ${type}`);
+                    }
+                }
+                
+                const blob = await response.blob();
+                // Assign explicit MIME type for secure contexts
+                const typedBlob = new Blob([blob], { type: mimeType });
+                return URL.createObjectURL(typedBlob);
+                
+            } catch (error) {
+                console.warn(`Cache strategy failed for ${type}, utilizing fallback...`, error);
+                return await toBlobURL(url, mimeType);
+            }
+        };
+
         const loadFFmpeg = async () => {
+            message.innerText = "Initializing processing engine...";
             try {
                 ffmpeg.on('progress', ({ progress }) => {
                     const percent = Math.min(Math.max(Math.round(progress * 100), 0), 100);
@@ -835,22 +847,29 @@
                     statusText.innerText = `Processing: ${percent}%`;
                 });
 
-                // BUG FIX for GitHub Pages: Convert CDN URLs to Object (Blob) URLs
-                // This prevents the browser from blocking WebAssembly due to strict Cross-Origin Web Worker policies.
-                const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-                const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
-                const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+                // Use 'umd' bundle via jsdelivr (highest compatibility with COEP/CORP and Web Workers)
+                const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
+                
+                message.innerText = "Downloading Core JS (this only happens once)...";
+                const coreURL = await getCachedFFmpegFile(`${baseURL}/ffmpeg-core.js`, 'Core JS', 'text/javascript');
+                
+                message.innerText = "Downloading WebAssembly Data (this takes a moment)...";
+                const wasmURL = await getCachedFFmpegFile(`${baseURL}/ffmpeg-core.wasm`, 'WASM', 'application/wasm');
 
+                message.innerText = "Booting engine...";
                 await ffmpeg.load({
-                    coreURL,
-                    wasmURL,
+                    coreURL: coreURL,
+                    wasmURL: wasmURL,
                 });
 
+                message.innerText = "Ready!";
                 convertBtn.innerText = "Compress & Trim Video";
                 convertBtn.disabled = false;
             } catch (error) {
-                console.error(error);
-                message.innerText = "Failed to load processing engine. Check connection.";
+                console.error("Engine Load Error:", error);
+                // Print explicit error message to user so they know what failed
+                message.innerText = `Setup Error: ${error.message}. Please refresh the page to try again.`;
+                message.style.color = 'var(--danger)';
             }
         };
 
@@ -860,6 +879,7 @@
 
             cleanupMemory();
             downloadLink.style.display = "none";
+            message.style.color = 'var(--text-muted)';
             const trimStart = parseFloat(trimStartInput.value) || 0;
             const trimEnd = parseFloat(trimEndInput.value) || 0;
             const durationToKeep = loadedVideoMeta.duration - trimStart - trimEnd;
@@ -890,7 +910,8 @@
                 downloadLink.style.display = "block";
                 message.innerText = "Done!";
             } catch (e) {
-                message.innerText = "Memory limit reached (2GB max). Try shorter clips.";
+                message.innerText = "Memory limit reached (2GB max) or encoding error. Try shorter clips.";
+                message.style.color = 'var(--danger)';
             } finally {
                 progressContainer.style.display = "none";
                 convertBtn.disabled = false;
@@ -898,6 +919,8 @@
         };
 
         convertBtn.addEventListener('click', processVideo);
+        
+        // Auto-initialize when page loads
         loadFFmpeg();
     </script>
 </body>
