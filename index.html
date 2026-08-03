@@ -19,7 +19,6 @@
             --text-muted: #8e9bb0;
             --accent-purple: #6346f6;
             --accent-purple-hover: #7357ff;
-            --accent-pink: #ec4899;
             --btn-purple: linear-gradient(135deg, #5b46f6, #7a5af8);
             --success: #10b981;
             --danger: #ef4444;
@@ -271,7 +270,14 @@
             width: 100%;
             height: auto;
             aspect-ratio: 16/9;
-            background-color: #000;
+            background-color: #0d111a;
+            background-image: 
+                linear-gradient(45deg, #182030 25%, transparent 25%), 
+                linear-gradient(-45deg, #182030 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #182030 75%), 
+                linear-gradient(-45deg, transparent 75%, #182030 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
             border-radius: var(--radius-panel);
             border: 1px solid var(--border-color);
             touch-action: none;
@@ -442,6 +448,10 @@
                         <div class="panel-box">
                             <div class="panel-title">1. Background Source</div>
                             <input type="file" id="thumb-bg-upload" accept="image/*">
+                            <label class="checkbox-row">
+                                <input type="checkbox" id="thumb-transparent">
+                                Transparent Background (No Dark Fill)
+                            </label>
                         </div>
 
                         <div class="panel-box">
@@ -525,7 +535,7 @@
                             <p class="help-text">Click/drag items on canvas to move & resize them. Double-click an item to delete it.</p>
                         </div>
 
-                        <button id="download-thumb-btn" class="btn btn-success">⬇️ Download Thumbnail (JPG)</button>
+                        <button id="download-thumb-btn" class="btn btn-success">⬇️ Download Thumbnail (PNG)</button>
                     </div>
 
                     <!-- Preview & Emoji Panel Right Column -->
@@ -591,7 +601,7 @@
                     </div>
                 </div>
 
-                <button id="convert-btn" class="btn" style="margin-top: 1.25rem;" disabled>Initializing Engine...</button>
+                <button id="convert-btn" class="btn" style="margin-top: 1.25rem;" disabled>Loading FFmpeg Engine...</button>
 
                 <div id="progress-container">
                     <p id="status-text" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">Compressing...</p>
@@ -606,8 +616,8 @@
     </div>
 
     <script type="module">
-        import { FFmpeg } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js';
-        import { fetchFile } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js';
+        import { FFmpeg } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js';
+        import { fetchFile, toBlobURL } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js';
 
         // ==========================================
         // TAB NAVIGATION
@@ -638,6 +648,7 @@
         const canvas = document.getElementById('thumb-canvas');
         const ctx = canvas.getContext('2d');
         const thumbBgUpload = document.getElementById('thumb-bg-upload');
+        const thumbTransparent = document.getElementById('thumb-transparent');
         const thumbPreset = document.getElementById('thumb-preset');
         const thumbTextTop = document.getElementById('thumb-text-top');
         const thumbTextBottom = document.getElementById('thumb-text-bottom');
@@ -831,6 +842,7 @@
             drawThumbnail();
         });
 
+        thumbTransparent.addEventListener('change', drawThumbnail);
         thumbTextTop.addEventListener('input', drawThumbnail);
         thumbTextBottom.addEventListener('input', drawThumbnail);
         thumbTextColor.addEventListener('change', drawThumbnail);
@@ -839,12 +851,14 @@
         function drawThumbnail() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            const isTransparent = thumbTransparent.checked;
+
             if (bgImage) {
                 const scale = Math.max(canvas.width / bgImage.width, canvas.height / bgImage.height);
                 const x = (canvas.width / 2) - (bgImage.width / 2) * scale;
                 const y = (canvas.height / 2) - (bgImage.height / 2) * scale;
                 ctx.drawImage(bgImage, x, y, bgImage.width * scale, bgImage.height * scale);
-            } else {
+            } else if (!isTransparent) {
                 ctx.fillStyle = '#121827'; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = '#475569';
@@ -933,8 +947,8 @@
             drawThumbnail();
 
             const link = document.createElement('a');
-            link.download = 'cookieclip_thumbnail.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.download = 'cookieclip_thumbnail.png';
+            link.href = canvas.toDataURL('image/png');
             link.click();
 
             if (tempSelected) {
@@ -1003,35 +1017,36 @@
         trimStartInput.addEventListener('input', updateEstimate);
         trimEndInput.addEventListener('input', updateEstimate);
 
-        const createBlobWorkerURL = async (url) => {
-            const res = await fetch(url);
-            const content = await res.text();
-            const blob = new Blob([content], { type: 'text/javascript' });
-            return URL.createObjectURL(blob);
-        };
-
         const loadFFmpeg = async () => {
             try {
+                message.innerText = "Downloading processing engine...";
+
                 ffmpeg.on('progress', ({ progress }) => {
                     const percent = Math.min(Math.max(Math.round(progress * 100), 0), 100);
                     progressBar.value = percent;
                     statusText.innerText = `Compressing: ${percent}%`;
                 });
 
-                const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
-                const coreURL = await createBlobWorkerURL(`${baseURL}/ffmpeg-core.js`);
-                
-                const wasmRes = await fetch(`${baseURL}/ffmpeg-core.wasm`);
-                const wasmBlob = new Blob([await wasmRes.arrayBuffer()], { type: 'application/wasm' });
-                const wasmURL = URL.createObjectURL(wasmBlob);
+                const coreBaseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+                const ffmpegBaseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm';
 
-                await ffmpeg.load({ coreURL, wasmURL });
+                // toBlobURL converts external scripts into same-origin blob URLs to prevent GitHub Pages Worker CORS errors
+                const coreURL = await toBlobURL(`${coreBaseURL}/ffmpeg-core.js`, 'text/javascript');
+                const wasmURL = await toBlobURL(`${coreBaseURL}/ffmpeg-core.wasm`, 'application/wasm');
+                const classWorkerURL = await toBlobURL(`${ffmpegBaseURL}/worker.js`, 'text/javascript');
+
+                await ffmpeg.load({
+                    coreURL,
+                    wasmURL,
+                    classWorkerURL
+                });
 
                 convertBtn.innerText = "Compress & Trim Video";
                 convertBtn.disabled = false;
+                message.innerText = "";
             } catch (err) {
-                console.error(err);
-                message.innerText = "Engine Error. Refresh and try again.";
+                console.error("FFmpeg load failed:", err);
+                message.innerText = `Engine Error: ${err.message || 'Failed to load assets'}. Refresh and try again.`;
             }
         };
 
