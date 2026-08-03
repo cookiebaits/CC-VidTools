@@ -6,30 +6,33 @@
     <title>CookieClip Video Tools</title>
     <!-- Required for SharedArrayBuffer on GitHub Pages -->
     <script src="coi-serviceworker.js"></script> 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #020617; /* Slate 950 */
-            --bg-panel: rgba(30, 41, 59, 0.6); /* Slate 800 transparent */
-            --bg-input: rgba(15, 23, 42, 0.7); /* Slate 900 transparent */
-            --border-color: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(255, 255, 255, 0.2);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #8b5cf6;
-            --accent-hover: #7c3aed;
-            --gradient-primary: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --bg-base: #0b0f19;
+            --bg-card: #121827;
+            --bg-panel: #1a2235;
+            --bg-input: #0e131f;
+            --border-color: #26334d;
+            --border-hover: #3b4d71;
+            --text-main: #f1f5f9;
+            --text-muted: #8e9bb0;
+            --accent-purple: #6346f6;
+            --accent-purple-hover: #7357ff;
+            --accent-pink: #ec4899;
+            --btn-purple: linear-gradient(135deg, #5b46f6, #7a5af8);
             --success: #10b981;
             --danger: #ef4444;
-            --radius-lg: 24px;
-            --radius-md: 12px;
+            --radius-card: 16px;
+            --radius-panel: 12px;
+            --radius-btn: 8px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         body {
@@ -39,109 +42,128 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 3rem 2rem;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Ambient Background Glows */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -20%; left: -10%; width: 50vw; height: 50vh;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-            z-index: -1;
-            pointer-events: none;
-        }
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -20%; right: -10%; width: 50vw; height: 50vh;
-            background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%);
-            z-index: -1;
-            pointer-events: none;
+            padding: 2.5rem 1.5rem;
         }
 
         .app-container {
             width: 100%;
-            max-width: 1200px;
-            z-index: 1;
+            max-width: 1240px;
         }
 
+        /* Header (GifMaker Style) */
         .header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
         }
 
         .header h1 {
-            font-size: 3rem;
+            font-size: 2.75rem;
             font-weight: 900;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1.5px;
-            text-shadow: 0 10px 30px rgba(168, 85, 247, 0.2);
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.5px;
         }
 
-        /* Floating Pill Tab Navigation */
+        .header h1 span.icon {
+            color: #f59e0b;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Segmented Navigation Tabs */
         .tab-nav-wrapper {
             display: flex;
             justify-content: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
         }
-        
+
         .tab-nav {
             display: inline-flex;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            padding: 0.5rem;
-            border-radius: 999px;
+            background: var(--bg-card);
+            padding: 0.4rem;
+            border-radius: var(--radius-panel);
             border: 1px solid var(--border-color);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            gap: 0.5rem;
         }
 
         .tab-btn {
             background: transparent;
             color: var(--text-muted);
             border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 999px;
-            font-size: 1rem;
-            font-weight: 600;
+            padding: 0.75rem 1.75rem;
+            border-radius: var(--radius-btn);
+            font-size: 0.95rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .tab-btn.active {
-            background: var(--text-main);
-            color: var(--bg-base);
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+            background: var(--btn-purple);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(91, 70, 246, 0.4);
         }
 
-        /* Main Workspace Panels (Glassmorphism) */
+        /* Views */
         .view-section {
             display: none;
-            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(20px);
         }
 
         .view-section.active {
             display: block;
         }
 
-        @keyframes slideUp {
-            to { opacity: 1; transform: translateY(0); }
+        /* Outer Dashboard Container */
+        .card-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-card);
+            padding: 1.75rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
 
-        .card {
+        /* 2-Column Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            gap: 1.75rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Control Stack Panels */
+        .control-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .panel-box {
             background: var(--bg-panel);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-panel);
+            padding: 1.25rem;
+        }
+
+        .panel-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         /* Form Elements */
@@ -150,205 +172,98 @@
             font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-muted);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-bottom: 0.4rem;
         }
 
-        input[type="file"], select, input[type="text"], input[type="number"] {
+        input[type="text"], input[type="number"], select {
             width: 100%;
-            padding: 0.875rem 1.25rem;
+            padding: 0.75rem 0.9rem;
             background: var(--bg-input);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-btn);
             color: var(--text-main);
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
         }
 
         input:focus, select:focus {
             outline: none;
-            border-color: var(--accent);
-            background: rgba(15, 23, 42, 0.9);
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2), inset 0 2px 4px rgba(0,0,0,0.2);
+            border-color: var(--accent-purple);
         }
 
-        /* File Input Customization */
-        input[type="file"]::file-selector-button {
-            background: var(--bg-panel);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            margin-right: 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-weight: 500;
-        }
-        input[type="file"]::file-selector-button:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        /* Buttons */
+        /* Buttons & Badges */
         .btn {
-            background: var(--gradient-primary);
+            background: var(--btn-purple);
             color: white;
             border: none;
-            padding: 1.25rem 2rem;
-            border-radius: var(--radius-md);
-            font-size: 1.1rem;
+            padding: 0.85rem 1.25rem;
+            border-radius: var(--radius-btn);
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
             width: 100%;
-            text-align: center;
-            box-shadow: 0 10px 20px -10px rgba(168, 85, 247, 0.5);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
         .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 25px -10px rgba(168, 85, 247, 0.6);
-        }
-
-        .btn:active:not(:disabled) {
-            transform: translateY(1px);
+            background: var(--accent-purple-hover);
+            transform: translateY(-1px);
         }
 
         .btn:disabled {
-            background: var(--bg-input);
-            color: var(--text-muted);
-            box-shadow: none;
+            background: #232d42;
+            color: #586885;
             cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #253147;
+            color: #e2e8f0;
             border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #31405c;
         }
 
         .btn-success {
             background: linear-gradient(135deg, #10b981, #059669);
-            box-shadow: 0 10px 20px -10px rgba(16, 185, 129, 0.5);
-        }
-        .btn-success:hover:not(:disabled) {
-            box-shadow: 0 15px 25px -10px rgba(16, 185, 129, 0.6);
-        }
-        
-        .btn-secondary {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            box-shadow: none;
-        }
-        .btn-secondary:hover:not(:disabled) {
-            background: rgba(255,255,255,0.05);
-            border-color: var(--border-hover);
         }
 
-        /* Video Compressor Specific */
-        .compressor-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .meta-box {
-            background: rgba(99, 102, 241, 0.05);
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            padding: 1.5rem;
-            border-radius: var(--radius-md);
-            margin: 2rem 0;
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .meta-row {
+        /* Sticker Overlay Badges */
+        .overlay-badge-grid {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-            font-size: 0.95rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .meta-row:last-of-type { border-bottom: none; padding-bottom: 0; }
-
-        .est-size {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #a5b4fc;
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px dashed var(--border-color);
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
-        /* Progress Bar */
-        #progress-container { margin-top: 2rem; display: none; }
-        progress {
-            width: 100%;
-            height: 12px;
-            border-radius: 6px;
-            overflow: hidden;
-            appearance: none;
-            background: var(--bg-input);
+        .sticker-badge-btn {
+            background: #232d42;
             border: 1px solid var(--border-color);
-        }
-        progress::-webkit-progress-bar { background-color: var(--bg-input); }
-        progress::-webkit-progress-value { 
-            background: var(--gradient-primary); 
-            transition: width 0.3s ease; 
-        }
-
-        .download-link {
-            display: block;
-            margin-top: 2rem;
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-            text-align: center;
-            padding: 1.25rem;
-            border-radius: var(--radius-md);
-            border: 1px dashed rgba(16, 185, 129, 0.4);
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.1rem;
+            color: #d1d5db;
+            padding: 0.45rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
             transition: all 0.2s;
         }
-        .download-link:hover {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: var(--success);
+
+        .sticker-badge-btn:hover {
+            background: var(--accent-purple);
+            color: white;
+            border-color: var(--accent-purple);
         }
 
-        /* Thumbnail Maker Layout */
-        .thumb-dashboard {
-            display: flex;
-            gap: 2rem;
-            align-items: stretch; 
-        }
-
-        .thumb-main {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .emoji-sidebar {
-            width: 320px;
-            background: var(--bg-panel);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2rem 1.5rem;
+        /* Canvas Workspace */
+        .canvas-container {
             display: flex;
             flex-direction: column;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .emoji-sidebar h3 {
-            margin-bottom: 1.5rem;
-            font-size: 1.2rem;
-            font-weight: 800;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-            color: #e2e8f0;
+            gap: 1rem;
         }
 
         canvas {
@@ -356,294 +271,293 @@
             height: auto;
             aspect-ratio: 16/9;
             background-color: #000;
-            background-image: 
-                linear-gradient(45deg, rgba(255,255,255,0.03) 25%, transparent 25%), 
-                linear-gradient(-45deg, rgba(255,255,255,0.03) 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.03) 75%), 
-                linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.03) 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            border-radius: var(--radius-panel);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            margin-bottom: 2rem;
-            cursor: crosshair;
             touch-action: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            cursor: crosshair;
         }
 
-        .controls-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+        /* Right Side Emoji Quick Panel */
+        .emoji-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-panel);
+            padding: 1.25rem;
         }
-        .full-col { grid-column: span 2; }
 
-        /* Emoji List Styles */
-        .emoji-list {
-            list-style: none;
+        .emoji-flex-grid {
             display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            flex-grow: 1; 
-            overflow-y: auto; 
-            padding-right: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
-        .emoji-list::-webkit-scrollbar { width: 6px; }
-        .emoji-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
-
-        .emoji-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .emoji-chip-btn {
             background: var(--bg-input);
-            padding: 0.75rem 1.25rem;
-            border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
-            transition: all 0.2s ease;
-        }
-
-        .emoji-item:hover {
-            border-color: var(--accent);
-            transform: translateX(4px);
-            background: rgba(30, 41, 59, 0.9);
-        }
-
-        .emoji-char {
-            font-size: 1.5rem;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
-
-        .copy-btn {
-            background: rgba(255,255,255,0.05);
             color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1.25rem;
-            border-radius: 8px;
+            padding: 0.4rem 0.75rem;
+            border-radius: var(--radius-btn);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .emoji-chip-btn:hover {
+            border-color: var(--accent-purple);
+            background: #1c263b;
+        }
+
+        .emoji-chip-btn span.copy-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Checkbox & Helpers */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             cursor: pointer;
             font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.2s;
+            color: #cbd5e1;
+            margin-top: 0.5rem;
         }
 
-        .copy-btn:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: var(--border-hover);
+        .checkbox-row input {
+            accent-color: var(--accent-purple);
+            width: 16px;
+            height: 16px;
         }
 
-        .copy-btn.copied {
-            background: var(--success);
-            color: white;
-            border-color: var(--success);
+        .help-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
         }
 
+        /* Security Pill & Progress */
         .security-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
+            display: inline-block;
+            font-size: 0.75rem;
             font-weight: 600;
             color: #34d399;
             background: rgba(16, 185, 129, 0.1);
-            padding: 0.5rem 1rem;
+            padding: 0.35rem 0.85rem;
             border-radius: 999px;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            margin-bottom: 1rem;
         }
 
-        .flex-row {
+        .meta-box {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: var(--radius-btn);
+            margin-top: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .meta-row {
             display: flex;
-            gap: 0.75rem;
-            align-items: stretch;
-        }
-        
-        .helper-text {
-            display: block;
-            margin-top: 0.75rem;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            line-height: 1.4;
+            justify-content: space-between;
+            margin-bottom: 0.4rem;
         }
 
-        /* Checkbox styling */
-        .checkbox-label {
-            display: flex; 
-            align-items: center; 
-            gap: 0.75rem; 
-            text-transform: none; 
-            margin-top: 1.25rem; 
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: #cbd5e1;
+        #progress-container {
+            margin-top: 1rem;
+            display: none;
         }
-        .checkbox-label input[type="checkbox"] {
-            width: 1.25rem;
-            height: 1.25rem;
-            margin: 0;
-            accent-color: var(--accent);
-            cursor: pointer;
+
+        progress {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            appearance: none;
+            background: var(--bg-input);
+        }
+
+        progress::-webkit-progress-bar { background-color: var(--bg-input); }
+        progress::-webkit-progress-value { background-color: var(--accent-purple); }
+
+        .download-link {
+            display: block;
+            margin-top: 1rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            text-align: center;
+            padding: 0.85rem;
+            border-radius: var(--radius-btn);
+            border: 1px dashed var(--success);
+            text-decoration: none;
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        <!-- Header -->
         <div class="header">
-            <h1>CookieClip Video Tools</h1>
+            <h1><span class="icon">⚡</span> CookieClip Video Tools</h1>
+            <p>Generate high-CTR thumbnails and compress video clips strictly in your browser.</p>
         </div>
 
+        <!-- Navigation -->
         <div class="tab-nav-wrapper">
             <div class="tab-nav">
                 <button id="tab-thumbnail" class="tab-btn active">🖼️ Thumbnail Maker</button>
-                <button id="tab-compressor" class="tab-btn">🎥 Compressor</button>
+                <button id="tab-compressor" class="tab-btn">🎥 Video Compressor</button>
             </div>
         </div>
 
         <!-- THUMBNAIL MAKER VIEW -->
         <div id="thumbnail-view" class="view-section active">
-            <div class="thumb-dashboard">
-                
-                <!-- Main Canvas & Controls -->
-                <div class="thumb-main card">
-                    <canvas id="thumb-canvas" width="1280" height="720"></canvas>
-
-                    <div class="controls-grid">
-                        <div class="full-col">
-                            <label>1. Background Image</label>
-                            <input type="file" id="thumb-bg-upload" accept="image/png, image/jpeg, image/webp">
+            <div class="card-container">
+                <div class="dashboard-grid">
+                    
+                    <!-- Controls Left Column -->
+                    <div class="control-stack">
+                        
+                        <div class="panel-box">
+                            <div class="panel-title">1. Background Source</div>
+                            <input type="file" id="thumb-bg-upload" accept="image/*">
                         </div>
 
-                        <div class="full-col">
-                            <label>2. Quick Presets</label>
-                            <select id="thumb-preset">
-                                <option value="">-- Start from scratch --</option>
-                                <option value="SCAM EXPOSED!|WATCH THIS FIRST">Scam Exposed!</option>
-                                <option value="I WAS WRONG.|THE TRUTH!">I Was Wrong / The Truth</option>
-                                <option value="DO NOT BUY THIS!|100% HONEST REVIEW">Do Not Buy This!</option>
-                                <option value="THEY TRIED TO HIDE THIS|🚨🚨🚨">They Tried to Hide This</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label>Top Text</label>
-                            <input type="text" id="thumb-text-top" placeholder="I WAS WRONG">
-                        </div>
-                        <div>
-                            <label>Bottom Text</label>
-                            <input type="text" id="thumb-text-bottom" placeholder="THE TRUTH">
-                        </div>
-
-                        <div>
-                            <label>Text Color</label>
-                            <select id="thumb-text-color">
-                                <option value="#FFFF00">Viral Yellow</option>
-                                <option value="#FFFFFF">Pure White</option>
-                                <option value="#00FF00">Neon Green</option>
-                                <option value="#FF0000">Alert Red</option>
-                            </select>
-                            
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="thumb-border">
-                                Add Red Clickbait Border
-                            </label>
-                        </div>
-
-                        <!-- FREE-MOVE OVERLAYS UI -->
-                        <div>
-                            <label>Draggable Overlays</label>
-                            <div class="flex-row">
-                                <select id="thumb-sticker" style="margin: 0;">
-                                    <option value="arrow">➡️ Huge Red Arrow</option>
-                                    <option value="circle">⭕ Red Circle</option>
-                                    <option value="shock">😱 Shocked Face</option>
-                                    <option value="fire">🔥 Fire</option>
-                                    <option value="money">💰 Money Bags</option>
-                                    <option value="question">❓ Red Question Mark</option>
-                                    <option value="cross">❌ Red X</option>
-                                    <option value="siren">🚨 Police Siren</option>
-                                    <option value="100">💯 100 Points</option>
-                                </select>
-                                <button id="add-overlay-btn" class="btn btn-secondary" style="width: auto; padding: 0 1.5rem;">Add</button>
+                        <div class="panel-box">
+                            <div class="panel-title">2. Text & Style Controls</div>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <div>
+                                    <label>Preset Hook</label>
+                                    <select id="thumb-preset">
+                                        <option value="">-- Custom Input --</option>
+                                        <option value="SCAM EXPOSED!|WATCH THIS FIRST">Scam Exposed!</option>
+                                        <option value="I WAS WRONG.|THE TRUTH!">I Was Wrong / The Truth</option>
+                                        <option value="DO NOT BUY THIS!|100% HONEST REVIEW">Do Not Buy This!</option>
+                                        <option value="THEY TRIED TO HIDE THIS|🚨🚨🚨">They Tried to Hide This</option>
+                                    </select>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                    <div>
+                                        <label>Top Text</label>
+                                        <input type="text" id="thumb-text-top" placeholder="I WAS WRONG">
+                                    </div>
+                                    <div>
+                                        <label>Bottom Text</label>
+                                        <input type="text" id="thumb-text-bottom" placeholder="THE TRUTH">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label>Font Color</label>
+                                    <select id="thumb-text-color">
+                                        <option value="#FFFF00">Viral Yellow</option>
+                                        <option value="#FFFFFF">Pure White</option>
+                                        <option value="#00FF00">Neon Green</option>
+                                        <option value="#FF0000">Alert Red</option>
+                                    </select>
+                                </div>
+                                <label class="checkbox-row">
+                                    <input type="checkbox" id="thumb-border">
+                                    Red Clickbait Frame Border
+                                </label>
                             </div>
-                            <span class="helper-text">Drag overlays on the canvas to move them. Double-click an overlay to delete it.</span>
+                        </div>
+
+                        <div class="panel-box">
+                            <div class="panel-title">3. Draggable Overlays (Click to Add)</div>
+                            <div class="overlay-badge-grid">
+                                <button class="sticker-badge-btn" data-sticker="arrow">➡️ Red Arrow</button>
+                                <button class="sticker-badge-btn" data-sticker="circle">⭕ Red Circle</button>
+                                <button class="sticker-badge-btn" data-sticker="shock">😱 Shocked Face</button>
+                                <button class="sticker-badge-btn" data-sticker="fire">🔥 Fire</button>
+                                <button class="sticker-badge-btn" data-sticker="money">💰 Money</button>
+                                <button class="sticker-badge-btn" data-sticker="question">❓ Question</button>
+                                <button class="sticker-badge-btn" data-sticker="cross">❌ Red X</button>
+                                <button class="sticker-badge-btn" data-sticker="siren">🚨 Siren</button>
+                                <button class="sticker-badge-btn" data-sticker="100">💯 100</button>
+                            </div>
+                            <p class="help-text">Drag items across canvas to reposition. Double-click items to remove them.</p>
+                        </div>
+
+                        <button id="download-thumb-btn" class="btn btn-success">⬇️ Download Thumbnail (JPG)</button>
+                    </div>
+
+                    <!-- Preview & Emoji Panel Right Column -->
+                    <div class="canvas-container">
+                        <canvas id="thumb-canvas" width="1280" height="720"></canvas>
+                        
+                        <div class="emoji-panel">
+                            <div class="panel-title" style="margin-bottom: 0.75rem;">Quick Emojis (Click to Copy)</div>
+                            <div class="emoji-flex-grid">
+                                <button class="emoji-chip-btn" data-emoji="🚨">🚨 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="😱">😱 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="🤯">🤯 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="🔥">🔥 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="🛑">🛑 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="⚠️">⚠️ <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="💸">💸 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="📉">📉 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="📈">📈 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="❌">❌ <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="🔴">🔴 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="💀">💀 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="🤡">🤡 <span class="copy-label">Copy</span></button>
+                                <button class="emoji-chip-btn" data-emoji="👀">👀 <span class="copy-label">Copy</span></button>
+                            </div>
                         </div>
                     </div>
 
-                    <button id="download-thumb-btn" class="btn btn-success">⬇️ Export Thumbnail (JPG)</button>
                 </div>
-
-                <!-- Right Sidebar: Emoji List -->
-                <div class="emoji-sidebar">
-                    <h3>Copy & Paste Emojis</h3>
-                    <ul class="emoji-list">
-                        <li class="emoji-item"><span class="emoji-char">🚨</span><button class="copy-btn" data-emoji="🚨">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">😱</span><button class="copy-btn" data-emoji="😱">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">🤯</span><button class="copy-btn" data-emoji="🤯">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">🔥</span><button class="copy-btn" data-emoji="🔥">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">🛑</span><button class="copy-btn" data-emoji="🛑">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">⚠️</span><button class="copy-btn" data-emoji="⚠️">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">💸</span><button class="copy-btn" data-emoji="💸">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">📉</span><button class="copy-btn" data-emoji="📉">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">📈</span><button class="copy-btn" data-emoji="📈">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">❌</span><button class="copy-btn" data-emoji="❌">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">🔴</span><button class="copy-btn" data-emoji="🔴">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">💀</span><button class="copy-btn" data-emoji="💀">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">🤡</span><button class="copy-btn" data-emoji="🤡">Copy</button></li>
-                        <li class="emoji-item"><span class="emoji-char">👀</span><button class="copy-btn" data-emoji="👀">Copy</button></li>
-                    </ul>
-                </div>
-
             </div>
         </div>
 
         <!-- VIDEO COMPRESSOR VIEW -->
         <div id="compressor-view" class="view-section">
-            <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-container" style="max-width: 650px; margin: 0 auto;">
                 <div style="text-align: center;">
-                    <div class="security-badge">🔒 Local RAM Processing • No Cloud Uploads</div>
-                    <h2 style="margin-bottom: 2rem; font-weight: 800; font-size: 1.8rem;">Browser Video Compressor</h2>
+                    <span class="security-badge">🔒 Private Offline In-Memory Processing</span>
+                    <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Browser Video Compressor</h2>
                 </div>
-                
-                <div>
-                    <label>Upload Source Video</label>
+
+                <div class="panel-box">
+                    <label>Select Source Video</label>
                     <input type="file" id="uploader" accept="video/*">
-                </div>
 
-                <div id="video-meta-info" class="meta-box">
-                    <div class="meta-row"><span>Resolution:</span> <strong id="meta-res">--</strong></div>
-                    <div class="meta-row"><span>Original Duration:</span> <strong id="meta-duration">--</strong></div>
-                    <div class="est-size">
-                        Est. Size: <span id="est-size-value">--</span>
-                    </div>
-                    <div id="4k-warn" style="display:none; color: var(--danger); font-size: 0.85rem; text-align: center; margin-top: 15px; font-weight: 600;">
-                        ⚠️ 4K encoding is memory intensive. Shorten clip if browser crashes.
-                    </div>
-                </div>
-                
-                <div class="compressor-grid">
-                    <div>
-                        <label>Trim Start (Seconds)</label>
-                        <input type="number" id="trim-start" value="0" min="0" step="0.1">
-                    </div>
-                    <div>
-                        <label>Trim End (Seconds)</label>
-                        <input type="number" id="trim-end" value="0" min="0" step="0.1">
+                    <div id="video-meta-info" class="meta-box" style="display:none;">
+                        <div class="meta-row"><span>Resolution:</span> <strong id="meta-res">--</strong></div>
+                        <div class="meta-row"><span>Duration:</span> <strong id="meta-duration">--</strong></div>
+                        <div class="meta-row" style="margin-top: 0.5rem; color: #a5b4fc;">
+                            <span>Est. Compressed Size:</span> <strong id="est-size-value">--</strong>
+                        </div>
                     </div>
                 </div>
 
-                <button id="convert-btn" class="btn" disabled>Initializing Engine...</button>
+                <div class="panel-box" style="margin-top: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div>
+                            <label>Trim Start (Sec)</label>
+                            <input type="number" id="trim-start" value="0" min="0" step="0.1">
+                        </div>
+                        <div>
+                            <label>Trim End (Sec)</label>
+                            <input type="number" id="trim-end" value="0" min="0" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="convert-btn" class="btn" style="margin-top: 1.25rem;" disabled>Initializing Engine...</button>
 
                 <div id="progress-container">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; font-weight: 600;">
-                        <span id="status-text">Compressing...</span>
-                    </div>
+                    <p id="status-text" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">Compressing...</p>
                     <progress id="progress-bar" value="0" max="100"></progress>
                 </div>
 
                 <a id="download-link" class="download-link" style="display: none;" href="#" download="cookieclip_compressed.mp4">⬇️ Save Compressed Video</a>
-                <p id="message" style="text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.9rem;"></p>
+                <p id="message" style="text-align: center; margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;"></p>
             </div>
         </div>
 
@@ -651,10 +565,10 @@
 
     <script type="module">
         import { FFmpeg } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js';
-        import { fetchFile, toBlobURL } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js';
+        import { fetchFile } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js';
 
         // ==========================================
-        // TAB NAVIGATION LOGIC
+        // TAB NAVIGATION
         // ==========================================
         const tabCompressor = document.getElementById('tab-compressor');
         const tabThumbnail = document.getElementById('tab-thumbnail');
@@ -666,7 +580,7 @@
             tabCompressor.classList.remove('active');
             viewThumbnail.classList.add('active');
             viewCompressor.classList.remove('active');
-            drawThumbnail(); 
+            drawThumbnail();
         });
 
         tabCompressor.addEventListener('click', () => {
@@ -677,7 +591,7 @@
         });
 
         // ==========================================
-        // THUMBNAIL MAKER LOGIC & DRAG ENGINE
+        // THUMBNAIL ENGINE & DRAG SYSTEM
         // ==========================================
         const canvas = document.getElementById('thumb-canvas');
         const ctx = canvas.getContext('2d');
@@ -687,74 +601,67 @@
         const thumbTextBottom = document.getElementById('thumb-text-bottom');
         const thumbTextColor = document.getElementById('thumb-text-color');
         const thumbBorder = document.getElementById('thumb-border');
-        const thumbSticker = document.getElementById('thumb-sticker');
-        const addOverlayBtn = document.getElementById('add-overlay-btn');
         const downloadThumbBtn = document.getElementById('download-thumb-btn');
 
         let bgImage = null;
-        let activeOverlays = []; 
+        let activeOverlays = [];
         let isDragging = false;
         let dragObj = null;
 
         const overlayDefs = {
-            'arrow': { type: 'text', content: '➡️', size: 250 },
-            'shock': { type: 'text', content: '😱', size: 250 },
-            'fire': { type: 'text', content: '🔥', size: 250 },
-            'money': { type: 'text', content: '💰', size: 250 },
-            'question': { type: 'text', content: '❓', size: 250 },
-            'cross': { type: 'text', content: '❌', size: 250 },
-            'siren': { type: 'text', content: '🚨', size: 250 },
-            '100': { type: 'text', content: '💯', size: 250 },
-            'circle': { type: 'circle', radius: 150 }
+            'arrow': { type: 'text', content: '➡️', size: 240 },
+            'shock': { type: 'text', content: '😱', size: 240 },
+            'fire': { type: 'text', content: '🔥', size: 240 },
+            'money': { type: 'text', content: '💰', size: 240 },
+            'question': { type: 'text', content: '❓', size: 240 },
+            'cross': { type: 'text', content: '❌', size: 240 },
+            'siren': { type: 'text', content: '🚨', size: 240 },
+            '100': { type: 'text', content: '💯', size: 240 },
+            'circle': { type: 'circle', radius: 140 }
         };
 
-        const copyBtns = document.querySelectorAll('.copy-btn');
-        copyBtns.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const emoji = e.target.getAttribute('data-emoji');
-                try {
-                    await navigator.clipboard.writeText(emoji);
-                    const originalText = e.target.innerText;
-                    e.target.innerText = 'Copied!';
-                    e.target.classList.add('copied');
-                    setTimeout(() => { 
-                        e.target.innerText = originalText; 
-                        e.target.classList.remove('copied');
-                    }, 1500);
-                } catch (err) {}
+        // Add Sticker Event
+        document.querySelectorAll('.sticker-badge-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const key = btn.getAttribute('data-sticker');
+                if (overlayDefs[key]) {
+                    activeOverlays.push({
+                        id: Date.now(),
+                        defId: key,
+                        x: canvas.width / 2,
+                        y: canvas.height / 2
+                    });
+                    drawThumbnail();
+                }
             });
         });
 
-        addOverlayBtn.addEventListener('click', () => {
-            const val = thumbSticker.value;
-            if (val && overlayDefs[val]) {
-                activeOverlays.push({
-                    id: Date.now(),
-                    defId: val,
-                    x: canvas.width / 2,
-                    y: canvas.height / 2
-                });
-                drawThumbnail();
-            }
+        // Quick Emoji Copy Event
+        document.querySelectorAll('.emoji-chip-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const emoji = btn.getAttribute('data-emoji');
+                try {
+                    await navigator.clipboard.writeText(emoji);
+                    const label = btn.querySelector('.copy-label');
+                    label.innerText = 'Copied!';
+                    setTimeout(() => { label.innerText = 'Copy'; }, 1200);
+                } catch(e) {}
+            });
         });
 
+        // Canvas Pointer Events
         canvas.addEventListener('pointerdown', (e) => {
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const mouseX = (e.clientX - rect.left) * scaleX;
-            const mouseY = (e.clientY - rect.top) * scaleY;
+            const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
             for (let i = activeOverlays.length - 1; i >= 0; i--) {
                 const obj = activeOverlays[i];
                 const def = overlayDefs[obj.defId];
                 let hit = false;
                 
-                if (def.type === 'text') {
-                    if (Math.abs(mouseX - obj.x) < def.size/1.5 && Math.abs(mouseY - obj.y) < def.size/1.5) hit = true;
-                } else if (def.type === 'circle') {
-                    if (Math.abs(mouseX - obj.x) < def.radius && Math.abs(mouseY - obj.y) < def.radius) hit = true;
-                }
+                if (def.type === 'text' && Math.abs(mouseX - obj.x) < def.size/1.5 && Math.abs(mouseY - obj.y) < def.size/1.5) hit = true;
+                if (def.type === 'circle' && Math.abs(mouseX - obj.x) < def.radius && Math.abs(mouseY - obj.y) < def.radius) hit = true;
 
                 if (hit) {
                     isDragging = true;
@@ -762,7 +669,6 @@
                     activeOverlays.splice(i, 1);
                     activeOverlays.push(obj);
                     canvas.setPointerCapture(e.pointerId);
-                    canvas.style.cursor = 'grabbing';
                     break;
                 }
             }
@@ -771,28 +677,23 @@
         canvas.addEventListener('pointermove', (e) => {
             if (!isDragging || !dragObj) return;
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            dragObj.x = (e.clientX - rect.left) * scaleX;
-            dragObj.y = (e.clientY - rect.top) * scaleY;
+            dragObj.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            dragObj.y = (e.clientY - rect.top) * (canvas.height / rect.height);
             drawThumbnail();
         });
 
-        const endDrag = (e) => {
+        const releasePointer = (e) => {
             isDragging = false;
             dragObj = null;
-            canvas.style.cursor = 'crosshair';
-            try { canvas.releasePointerCapture(e.pointerId); } catch(err){}
+            try { canvas.releasePointerCapture(e.pointerId); } catch(e){}
         };
-        canvas.addEventListener('pointerup', endDrag);
-        canvas.addEventListener('pointercancel', endDrag);
+        canvas.addEventListener('pointerup', releasePointer);
+        canvas.addEventListener('pointercancel', releasePointer);
 
         canvas.addEventListener('dblclick', (e) => {
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const mouseX = (e.clientX - rect.left) * scaleX;
-            const mouseY = (e.clientY - rect.top) * scaleY;
+            const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
             for (let i = activeOverlays.length - 1; i >= 0; i--) {
                 const obj = activeOverlays[i];
@@ -813,10 +714,10 @@
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = (evt) => {
                 const img = new Image();
                 img.onload = () => { bgImage = img; drawThumbnail(); };
-                img.src = event.target.result;
+                img.src = evt.target.result;
             };
             reader.readAsDataURL(file);
         });
@@ -844,20 +745,20 @@
                 const y = (canvas.height / 2) - (bgImage.height / 2) * scale;
                 ctx.drawImage(bgImage, x, y, bgImage.width * scale, bgImage.height * scale);
             } else {
-                ctx.fillStyle = '#1e293b'; 
+                ctx.fillStyle = '#121827'; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#64748b';
-                ctx.font = '600 40px Inter, sans-serif';
+                ctx.fillStyle = '#475569';
+                ctx.font = '600 36px Inter, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText('Upload an image to begin', canvas.width/2, canvas.height/2);
+                ctx.fillText('Upload an image to start', canvas.width/2, canvas.height/2);
             }
 
             const topText = thumbTextTop.value.toUpperCase();
             const bottomText = thumbTextBottom.value.toUpperCase();
             
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic'; 
+            ctx.textBaseline = 'alphabetic';
             ctx.font = '900 130px Impact, sans-serif';
             ctx.fillStyle = thumbTextColor.value;
             ctx.strokeStyle = '#000000';
@@ -866,8 +767,8 @@
             
             ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
             ctx.shadowBlur = 20;
-            ctx.shadowOffsetX = 8;
-            ctx.shadowOffsetY = 8;
+            ctx.shadowOffsetX = 6;
+            ctx.shadowOffsetY = 6;
 
             if (topText) {
                 ctx.strokeText(topText, canvas.width / 2, 160);
@@ -883,11 +784,8 @@
 
             activeOverlays.forEach(obj => {
                 const def = overlayDefs[obj.defId];
-                
                 ctx.shadowColor = 'rgba(0,0,0,0.6)';
                 ctx.shadowBlur = 15;
-                ctx.shadowOffsetX = 5;
-                ctx.shadowOffsetY = 5;
 
                 if (def.type === 'text') {
                     ctx.font = `${def.size}px Arial`;
@@ -896,7 +794,7 @@
                     ctx.fillText(def.content, obj.x, obj.y);
                 } else if (def.type === 'circle') {
                     ctx.strokeStyle = '#ef4444';
-                    ctx.lineWidth = 25;
+                    ctx.lineWidth = 22;
                     ctx.beginPath();
                     ctx.arc(obj.x, obj.y, def.radius, 0, Math.PI * 2);
                     ctx.stroke();
@@ -918,10 +816,10 @@
             link.click();
         });
 
-        drawThumbnail(); 
+        drawThumbnail();
 
         // ==========================================
-        // VIDEO COMPRESSOR LOGIC
+        // COMPRESSOR ENGINE (CORS WORKER FIXED)
         // ==========================================
         const ffmpeg = new FFmpeg();
         const uploader = document.getElementById('uploader');
@@ -931,206 +829,119 @@
         const progressBar = document.getElementById('progress-bar');
         const statusText = document.getElementById('status-text');
         const downloadLink = document.getElementById('download-link');
-        
         const trimStartInput = document.getElementById('trim-start');
         const trimEndInput = document.getElementById('trim-end');
         const metaInfoBox = document.getElementById('video-meta-info');
         const metaRes = document.getElementById('meta-res');
         const metaDuration = document.getElementById('meta-duration');
         const estSizeValue = document.getElementById('est-size-value');
-        const warn4k = document.getElementById('4k-warn');
 
-        let currentObjectUrl = null;
         let loadedVideoMeta = null;
 
-        const cleanupMemory = () => {
-            if (currentObjectUrl) {
-                URL.revokeObjectURL(currentObjectUrl);
-                currentObjectUrl = null;
-            }
-            try {
-                ffmpeg.deleteFile('input.mp4');
-                ffmpeg.deleteFile('output.mp4');
-            } catch (e) {}
-        };
-
-        window.addEventListener('beforeunload', cleanupMemory);
-        
-        function formatBytes(bytes, decimals = 2) {
+        function formatBytes(bytes) {
             if (bytes === 0) return '0 Bytes';
-            const k = 1024, dm = decimals < 0 ? 0 : decimals, sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
         function formatSeconds(seconds) {
             return new Date(seconds * 1000).toISOString().substr(11, 8);
         }
 
-        const getVideoMetadata = (file) => {
-            return new Promise((resolve) => {
-                const video = document.createElement('video');
-                video.preload = 'metadata';
-                video.onloadedmetadata = function() {
-                    URL.revokeObjectURL(video.src);
-                    resolve({ duration: video.duration, width: video.videoWidth, height: video.videoHeight });
-                }
-                video.src = URL.createObjectURL(file);
-            });
-        };
+        uploader.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+            video.onloadedmetadata = () => {
+                URL.revokeObjectURL(video.src);
+                loadedVideoMeta = { duration: video.duration, width: video.videoWidth, height: video.videoHeight };
+                metaRes.innerText = `${loadedVideoMeta.width}x${loadedVideoMeta.height}`;
+                metaDuration.innerText = formatSeconds(loadedVideoMeta.duration);
+                metaInfoBox.style.display = 'block';
+                updateEstimate();
+            };
+            video.src = URL.createObjectURL(file);
+        });
 
         const updateEstimate = () => {
             if (!loadedVideoMeta) return;
-            const trimStart = parseFloat(trimStartInput.value) || 0;
-            const trimEnd = parseFloat(trimEndInput.value) || 0;
-            const finalDuration = loadedVideoMeta.duration - trimStart - trimEnd;
-
-            if (finalDuration <= 0) {
-                estSizeValue.innerText = "Invalid Trim";
-                estSizeValue.style.color = 'var(--danger)';
-                return;
-            }
-            estSizeValue.style.color = '#a5b4fc';
-
-            const { height, width } = loadedVideoMeta;
-            let targetVideoBitrateBps = 0;
-
-            if (height >= 2160 || width >= 3840) { 
-                targetVideoBitrateBps = 15000000; warn4k.style.display = 'block';
-            } else if (height >= 1440 || width >= 2560) { 
-                targetVideoBitrateBps = 8000000; warn4k.style.display = 'none';
-            } else if (height >= 1080 || width >= 1920) { 
-                targetVideoBitrateBps = 4000000; warn4k.style.display = 'none';
-            } else { 
-                targetVideoBitrateBps = 2000000; warn4k.style.display = 'none';
-            }
-
-            const estimatedSizeBytes = ((targetVideoBitrateBps + 128000) * finalDuration) / 8;
-            estSizeValue.innerText = "~" + formatBytes(estimatedSizeBytes * 1.1);
+            const duration = loadedVideoMeta.duration - (parseFloat(trimStartInput.value) || 0) - (parseFloat(trimEndInput.value) || 0);
+            if (duration <= 0) return estSizeValue.innerText = "Invalid Trim";
+            const bps = loadedVideoMeta.height >= 1080 ? 4000000 : 2000000;
+            estSizeValue.innerText = "~" + formatBytes(((bps + 128000) * duration) / 8 * 1.1);
         };
-
-        uploader.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) {
-                metaInfoBox.style.display = 'none';
-                loadedVideoMeta = null;
-                return;
-            }
-            message.innerText = "Reading metadata...";
-            loadedVideoMeta = await getVideoMetadata(file);
-            message.innerText = "";
-            metaRes.innerText = `${loadedVideoMeta.width}x${loadedVideoMeta.height}`;
-            metaDuration.innerText = formatSeconds(loadedVideoMeta.duration);
-            trimStartInput.max = loadedVideoMeta.duration;
-            trimEndInput.max = loadedVideoMeta.duration;
-            metaInfoBox.style.display = 'block';
-            updateEstimate();
-        });
 
         trimStartInput.addEventListener('input', updateEstimate);
         trimEndInput.addEventListener('input', updateEstimate);
 
-        const getCachedFFmpegFile = async (url, type, mimeType) => {
-            const cacheName = 'ffmpeg-engine-cache-v1';
-            try {
-                const cache = await caches.open(cacheName);
-                let response = await cache.match(url);
-                
-                if (!response) {
-                    console.log(`Downloading ${type} for the first time...`);
-                    response = await fetch(url);
-                    if (response.ok) {
-                        await cache.put(url, response.clone());
-                    } else {
-                        throw new Error(`HTTP ${response.status} fetching ${type}`);
-                    }
-                }
-                
-                const blob = await response.blob();
-                const typedBlob = new Blob([blob], { type: mimeType });
-                return URL.createObjectURL(typedBlob);
-                
-            } catch (error) {
-                console.warn(`Cache strategy failed for ${type}, utilizing fallback...`, error);
-                return await toBlobURL(url, mimeType);
-            }
+        // Helper to fetch script files and turn them into same-origin Blob URLs
+        const createBlobWorkerURL = async (url) => {
+            const res = await fetch(url);
+            const content = await res.text();
+            const blob = new Blob([content], { type: 'text/javascript' });
+            return URL.createObjectURL(blob);
         };
 
         const loadFFmpeg = async () => {
-            message.innerText = "Initializing processing engine...";
             try {
                 ffmpeg.on('progress', ({ progress }) => {
                     const percent = Math.min(Math.max(Math.round(progress * 100), 0), 100);
                     progressBar.value = percent;
-                    statusText.innerText = `Processing: ${percent}%`;
+                    statusText.innerText = `Compressing: ${percent}%`;
                 });
 
+                // CORS Fix: Download UMD distribution files as same-origin Blob URLs
                 const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
-                const coreURL = await getCachedFFmpegFile(`${baseURL}/ffmpeg-core.js`, 'Core JS', 'text/javascript');
-                const wasmURL = await getCachedFFmpegFile(`${baseURL}/ffmpeg-core.wasm`, 'WASM', 'application/wasm');
+                const coreURL = await createBlobWorkerURL(`${baseURL}/ffmpeg-core.js`);
+                
+                const wasmRes = await fetch(`${baseURL}/ffmpeg-core.wasm`);
+                const wasmBlob = new Blob([await wasmRes.arrayBuffer()], { type: 'application/wasm' });
+                const wasmURL = URL.createObjectURL(wasmBlob);
 
-                await ffmpeg.load({
-                    coreURL: coreURL,
-                    wasmURL: wasmURL,
-                });
+                await ffmpeg.load({ coreURL, wasmURL });
 
-                message.innerText = "Ready!";
                 convertBtn.innerText = "Compress & Trim Video";
                 convertBtn.disabled = false;
-            } catch (error) {
-                console.error("Engine Load Error:", error);
-                message.innerText = `Setup Error: ${error.message}. Please refresh the page to try again.`;
-                message.style.color = 'var(--danger)';
+            } catch (err) {
+                console.error(err);
+                message.innerText = "Engine Error. Refresh and try again.";
             }
         };
 
-        const processVideo = async () => {
+        convertBtn.addEventListener('click', async () => {
             const file = uploader.files[0];
-            if (!file || !loadedVideoMeta) return alert("Select a video file first.");
+            if (!file || !loadedVideoMeta) return alert("Upload a video first.");
 
-            cleanupMemory();
             downloadLink.style.display = "none";
-            message.style.color = 'var(--text-muted)';
-            const trimStart = parseFloat(trimStartInput.value) || 0;
-            const trimEnd = parseFloat(trimEndInput.value) || 0;
-            const durationToKeep = loadedVideoMeta.duration - trimStart - trimEnd;
-
-            if (durationToKeep <= 0) return alert("Trim times remove the whole video.");
-
             convertBtn.disabled = true;
             progressContainer.style.display = "block";
-            message.innerText = "Writing to memory...";
+            message.innerText = "Processing video...";
+
+            const duration = loadedVideoMeta.duration - (parseFloat(trimStartInput.value) || 0) - (parseFloat(trimEndInput.value) || 0);
 
             await ffmpeg.writeFile('input.mp4', await fetchFile(file));
-            message.innerText = "Encoding... keep this tab open.";
-            
-            const args = [];
-            if (trimStart > 0) args.push('-ss', String(trimStart));
-            if (trimStart > 0 || trimEnd > 0) args.push('-t', String(durationToKeep));
 
-            args.push('-i', 'input.mp4', '-c:v', 'libx264', '-crf', '23', '-preset', 'veryfast', '-pix_fmt', 'yuv420p'); 
-            const is4k = loadedVideoMeta.height >= 2160 || loadedVideoMeta.width >= 3840;
-            args.push('-profile:v', 'high', '-level', is4k ? '5.2' : '4.1', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', 'output.mp4');
+            const args = ['-i', 'input.mp4'];
+            if (trimStartInput.value > 0) args.push('-ss', String(trimStartInput.value));
+            if (duration > 0) args.push('-t', String(duration));
+            args.push('-c:v', 'libx264', '-crf', '23', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', 'output.mp4');
 
             try {
                 await ffmpeg.exec(args);
-                message.innerText = "Packaging output...";
                 const data = await ffmpeg.readFile('output.mp4');
-                currentObjectUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-                downloadLink.href = currentObjectUrl;
+                downloadLink.href = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
                 downloadLink.style.display = "block";
                 message.innerText = "Done!";
             } catch (e) {
-                message.innerText = "Memory limit reached (2GB max) or encoding error. Try shorter clips.";
-                message.style.color = 'var(--danger)';
+                message.innerText = "Error compressing video.";
             } finally {
                 progressContainer.style.display = "none";
                 convertBtn.disabled = false;
             }
-        };
+        });
 
-        convertBtn.addEventListener('click', processVideo);
-        
         loadFFmpeg();
     </script>
 </body>
