@@ -5,458 +5,535 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CookieClip Video Tools</title>
     <script src="coi-serviceworker.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --success: #10b981;
+            --bg-base: #09090b;
+            --bg-panel: #18181b;
+            --bg-input: #27272a;
+            --border-color: #3f3f46;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --success: #22c55e;
             --danger: #ef4444;
+            --radius: 12px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
+            background-color: var(--bg-base);
             color: var(--text-main);
-            line-height: 1.5;
-            padding: 2rem 1rem;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
+            padding: 2rem;
         }
 
-        .container {
+        .app-container {
             width: 100%;
-            max-width: 840px;
+            max-width: 1200px;
         }
 
-        .header-title {
+        .header {
             text-align: center;
-            font-size: 2.25rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), #ec4899);
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 2rem;
+            letter-spacing: -1px;
         }
 
-        /* Tab Navigation - Modern Segmented Control */
-        .tab-container {
+        /* Tab Navigation */
+        .tab-nav {
             display: flex;
-            background-color: #e2e8f0;
+            background: var(--bg-panel);
             padding: 0.5rem;
-            border-radius: 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
             margin-bottom: 2rem;
-            gap: 0.5rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .tab-btn {
             flex: 1;
-            background-color: transparent;
+            background: transparent;
             color: var(--text-muted);
             border: none;
-            padding: 0.75rem 1.5rem;
+            padding: 0.75rem 1rem;
             border-radius: 8px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
         }
 
         .tab-btn.active {
-            background-color: var(--card-bg);
+            background: var(--bg-input);
             color: var(--text-main);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
-        .tab-btn:hover:not(.active) {
-            color: var(--text-main);
+        /* Main Workspace Panels */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
         }
 
-        /* Cards */
-        .card {
-            background: var(--card-bg);
-            padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border-color);
-            animation: fadeIn 0.4s ease-out;
+        .view-section.active {
+            display: block;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .card-header {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .card-header h2 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-header p {
-            color: var(--text-muted);
+        .card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
         /* Form Elements */
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         input[type="file"], select, input[type="text"], input[type="number"] {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.875rem 1rem;
+            background: var(--bg-input);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            font-size: 1rem;
             color: var(--text-main);
-            background-color: #f8fafc;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s;
         }
 
         input:focus, select:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-        }
-
-        /* Controls Layouts */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.25rem;
-        }
-
-        .full-width {
-            grid-column: span 2;
-        }
-        
-        label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-main);
-        }
-
-        .panel {
-            background: #f1f5f9;
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 1.5rem;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
         }
 
         /* Buttons */
-        .action-btn {
-            background-color: var(--primary);
+        .btn {
+            background: var(--accent);
             color: white;
             border: none;
-            padding: 1rem 2rem;
+            padding: 1rem 1.5rem;
             border-radius: 8px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: all 0.2s;
             width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
+            text-align: center;
         }
 
-        .action-btn:hover:not(:disabled) {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
+        .btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
         }
 
-        .action-btn:disabled {
-            background-color: #94a3b8;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-success { background-color: var(--success); }
-        .btn-success:hover:not(:disabled) { background-color: #059669; }
-
-        /* Emoji Picker Styles */
-        .emoji-help {
-            font-size: 0.75rem;
+        .btn:disabled {
+            background: var(--bg-input);
             color: var(--text-muted);
-            margin-bottom: 0.5rem;
-            display: block;
+            cursor: not-allowed;
         }
 
-        .emoji-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            background: #ffffff;
-            padding: 0.75rem;
+        .btn-success {
+            background: var(--success);
+        }
+        .btn-success:hover:not(:disabled) {
+            background: #16a34a;
+        }
+
+        /* Video Compressor Specific */
+        .compressor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .meta-box {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 1.5rem;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .emoji-btn {
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 6px;
-            padding: 0.35rem 0.5rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: transform 0.1s, background-color 0.2s, border-color 0.2s;
-        }
-
-        .emoji-btn:hover {
-            background-color: #f1f5f9;
-            border-color: var(--border-color);
-            transform: scale(1.15);
-        }
-
-        /* Metadata & Progress */
-        #video-meta-info {
+            margin: 1.5rem 0;
             display: none;
         }
 
         .meta-row {
             display: flex;
             justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px dashed var(--border-color);
-            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
-        
-        .meta-row:last-of-type { border-bottom: none; }
-        
-        .meta-label { color: var(--text-muted); font-weight: 500; }
-        .meta-value { font-weight: 600; }
-        
-        .est-size-box {
-            background-color: #e0e7ff;
-            border: 1px solid #c7d2fe;
-            color: #3730a3;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            text-align: center;
+
+        .est-size {
+            font-size: 1.5rem;
             font-weight: 700;
+            color: #818cf8;
+            text-align: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--border-color);
         }
-        
-        #progress-container { margin-top: 1.5rem; display: none; text-align: center; }
-        #status-text { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 500; }
+
+        /* Progress Bar */
+        #progress-container { margin-top: 1.5rem; display: none; }
         progress {
             width: 100%;
-            height: 8px;
-            border-radius: 4px;
+            height: 10px;
+            border-radius: 5px;
             overflow: hidden;
             appearance: none;
+            background: var(--bg-input);
         }
-        progress::-webkit-progress-bar { background-color: #e2e8f0; }
-        progress::-webkit-progress-value { background-color: var(--primary); transition: width 0.2s; }
-
-        .security-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #065f46;
-            background: #d1fae5;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            margin-bottom: 1.5rem;
-        }
-        
-        .warn-text { color: var(--danger); font-size: 0.75rem; margin-top: 0.5rem; display: block; font-weight: normal;}
-        .message { margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted); text-align: center; }
+        progress::-webkit-progress-bar { background-color: var(--bg-input); }
+        progress::-webkit-progress-value { background-color: var(--accent); transition: width 0.2s; }
 
         .download-link {
-            display: none;
+            display: block;
             margin-top: 1.5rem;
+            background: rgba(34, 197, 94, 0.1);
             color: var(--success);
-            font-weight: 700;
-            text-decoration: none;
             text-align: center;
             padding: 1rem;
-            border: 2px dashed var(--success);
             border-radius: 8px;
-            background: #f0fdf4;
-            transition: all 0.2s;
+            border: 1px dashed var(--success);
+            text-decoration: none;
+            font-weight: bold;
         }
-        .download-link:hover { background: #dcfce7; }
 
-        /* Thumbnail Maker */
-        #thumbnail-view { display: none; }
+        /* Thumbnail Maker Layout */
+        .thumb-dashboard {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .thumb-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .emoji-sidebar {
+            width: 320px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .emoji-sidebar h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
         canvas {
             width: 100%;
             height: auto;
             aspect-ratio: 16/9;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            background-color: #e2e8f0;
-            /* Checkerboard pattern for transparency visualization */
-            background-image: linear-gradient(45deg, #cbd5e1 25%, transparent 25%), linear-gradient(-45deg, #cbd5e1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #cbd5e1 75%), linear-gradient(-45deg, transparent 75%, #cbd5e1 75%);
+            background-color: #000;
+            background-image: 
+                linear-gradient(45deg, #18181b 25%, transparent 25%), 
+                linear-gradient(-45deg, #18181b 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #18181b 75%), 
+                linear-gradient(-45deg, transparent 75%, #18181b 75%);
             background-size: 20px 20px;
             background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .full-col { grid-column: span 2; }
+
+        /* Emoji List Styles */
+        .emoji-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .emoji-list::-webkit-scrollbar { width: 6px; }
+        .emoji-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+        .emoji-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-input);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .emoji-item:hover {
+            border-color: var(--accent);
+        }
+
+        .emoji-char {
+            font-size: 1.5rem;
+        }
+
+        .copy-btn {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .security-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            color: var(--success);
+            background: rgba(34, 197, 94, 0.1);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(34, 197, 94, 0.2);
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1 class="header-title">CookieClip Video Tools</h1>
+    <div class="app-container">
+        <div class="header">
+            <h1>CookieClip Video Tools</h1>
+        </div>
 
-        <div class="tab-container">
-            <button id="tab-compressor" class="tab-btn active">🎥 Video Compressor</button>
+        <div class="tab-nav">
+            <button id="tab-compressor" class="tab-btn active">🎥 Compressor</button>
             <button id="tab-thumbnail" class="tab-btn">🖼️ Thumbnail Maker</button>
         </div>
 
         <!-- VIDEO COMPRESSOR VIEW -->
-        <div id="compressor-view" class="card">
-            <div class="card-header">
-                <span class="security-badge">🔒 Processes strictly offline in RAM. Clears when tab closes.</span>
-                <h2>Browser Video Compressor</h2>
-                <p>Compress and trim videos up to 4K/60fps locally.</p>
+        <div id="compressor-view" class="view-section active card">
+            <div style="text-align: center;">
+                <div class="security-badge">🔒 Local RAM Processing • No Cloud Uploads</div>
+                <h2 style="margin-bottom: 1.5rem;">Browser Video Compressor</h2>
             </div>
             
-            <div class="panel">
-                <label>Upload Video</label>
+            <div>
+                <label>Upload Source Video</label>
                 <input type="file" id="uploader" accept="video/*">
             </div>
 
-            <!-- Input Video Metadata & Estimate -->
-            <div id="video-meta-info" class="panel">
-                <div class="meta-row">
-                    <span class="meta-label">Original Resolution:</span>
-                    <span id="meta-res" class="meta-value">--</span>
+            <div id="video-meta-info" class="meta-box">
+                <div class="meta-row"><span>Resolution:</span> <strong id="meta-res">--</strong></div>
+                <div class="meta-row"><span>Original Duration:</span> <strong id="meta-duration">--</strong></div>
+                <div class="est-size">
+                    Est. Size: <span id="est-size-value">--</span>
                 </div>
-                <div class="meta-row">
-                    <span class="meta-label">Original Duration:</span>
-                    <span id="meta-duration" class="meta-value">--</span>
-                </div>
-                <div id="est-size-box" class="est-size-box">
-                    Estimated Compressed Size: <br>
-                    <span id="est-size-value" style="font-size: 1.25rem;">--</span>
-                    <span id="4k-warn" class="warn-text" style="display:none;">⚠️ 4K encoding is memory intensive. Short clips recommended to avoid browser crash.</span>
+                <div id="4k-warn" style="display:none; color: var(--danger); font-size: 0.8rem; text-align: center; margin-top: 10px;">
+                    ⚠️ 4K encoding is memory intensive. Shorten clip if browser crashes.
                 </div>
             </div>
             
-            <div class="panel grid-2">
+            <div class="compressor-grid">
                 <div>
-                    <label>Cut from Start (seconds)</label>
+                    <label>Trim Start (Seconds)</label>
                     <input type="number" id="trim-start" value="0" min="0" step="0.1">
                 </div>
                 <div>
-                    <label>Cut from End (seconds)</label>
+                    <label>Trim End (Seconds)</label>
                     <input type="number" id="trim-end" value="0" min="0" step="0.1">
                 </div>
             </div>
 
-            <button id="convert-btn" class="action-btn" disabled>Load FFmpeg to Start</button>
+            <button id="convert-btn" class="btn" disabled>Loading Engine...</button>
 
             <div id="progress-container">
-                <p id="status-text">Compressing...</p>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                    <span id="status-text">Compressing...</span>
+                </div>
                 <progress id="progress-bar" value="0" max="100"></progress>
             </div>
 
-            <a id="download-link" class="download-link" href="#" download="compressed_for_youtube.mp4">⬇️ Download Compressed Video</a>
-            <p id="message" class="message"></p>
+            <a id="download-link" class="download-link" style="display: none;" href="#" download="cookieclip_compressed.mp4">⬇️ Save Compressed Video</a>
+            <p id="message" style="text-align: center; margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;"></p>
         </div>
 
         <!-- THUMBNAIL MAKER VIEW -->
-        <div id="thumbnail-view" class="card">
-            <div class="card-header">
-                <h2>Viral Thumbnail Maker</h2>
-                <p>Create high-CTR YouTube thumbnails instantly.</p>
-            </div>
+        <div id="thumbnail-view" class="view-section">
+            <div class="thumb-dashboard">
+                
+                <!-- Main Canvas & Controls -->
+                <div class="thumb-main card">
+                    <canvas id="thumb-canvas" width="1280" height="720"></canvas>
 
-            <canvas id="thumb-canvas" width="1280" height="720"></canvas>
+                    <div class="controls-grid">
+                        <div class="full-col">
+                            <label>1. Background Image</label>
+                            <input type="file" id="thumb-bg-upload" accept="image/png, image/jpeg, image/webp">
+                        </div>
 
-            <div class="panel grid-2">
-                <div class="full-width">
-                    <label>1. Background Image</label>
-                    <input type="file" id="thumb-bg-upload" accept="image/png, image/jpeg, image/webp, image/gif">
-                </div>
+                        <div class="full-col">
+                            <label>2. Quick Presets</label>
+                            <select id="thumb-preset">
+                                <option value="">-- Start from scratch --</option>
+                                <option value="SCAM EXPOSED!|WATCH THIS FIRST">Scam Exposed!</option>
+                                <option value="I WAS WRONG.|THE TRUTH!">I Was Wrong / The Truth</option>
+                                <option value="DO NOT BUY THIS!|100% HONEST REVIEW">Do Not Buy This!</option>
+                                <option value="THEY TRIED TO HIDE THIS|🚨🚨🚨">They Tried to Hide This</option>
+                            </select>
+                        </div>
 
-                <div class="full-width">
-                    <label>2. Viral Text Presets</label>
-                    <select id="thumb-preset">
-                        <option value="">-- Custom Text --</option>
-                        <option value="SCAM EXPOSED!|WATCH THIS FIRST">Scam Exposed!</option>
-                        <option value="I WAS WRONG.|THE TRUTH!">I Was Wrong / The Truth</option>
-                        <option value="DO NOT BUY THIS!|100% HONEST REVIEW">Do Not Buy This!</option>
-                        <option value="THEY TRIED TO HIDE THIS|🚨🚨🚨">They Tried to Hide This</option>
-                    </select>
-                </div>
+                        <div>
+                            <label>Top Text</label>
+                            <input type="text" id="thumb-text-top" placeholder="I WAS WRONG">
+                        </div>
+                        <div>
+                            <label>Bottom Text</label>
+                            <input type="text" id="thumb-text-bottom" placeholder="THE TRUTH">
+                        </div>
 
-                <!-- Quick Emojis Section -->
-                <div class="full-width">
-                    <label>Quick Emojis</label>
-                    <span class="emoji-help">Click an emoji to instantly copy it, then paste it into your text fields below!</span>
-                    <div class="emoji-list">
-                        <button type="button" class="emoji-btn">🚨</button>
-                        <button type="button" class="emoji-btn">😱</button>
-                        <button type="button" class="emoji-btn">🤯</button>
-                        <button type="button" class="emoji-btn">🔥</button>
-                        <button type="button" class="emoji-btn">🛑</button>
-                        <button type="button" class="emoji-btn">⚠️</button>
-                        <button type="button" class="emoji-btn">💸</button>
-                        <button type="button" class="emoji-btn">📉</button>
-                        <button type="button" class="emoji-btn">📈</button>
-                        <button type="button" class="emoji-btn">❌</button>
-                        <button type="button" class="emoji-btn">🔴</button>
-                        <button type="button" class="emoji-btn">💀</button>
-                        <button type="button" class="emoji-btn">🤡</button>
-                        <button type="button" class="emoji-btn">👀</button>
-                        <button type="button" class="emoji-btn">🤫</button>
+                        <div>
+                            <label>Text Color</label>
+                            <select id="thumb-text-color">
+                                <option value="#FFFF00">Viral Yellow</option>
+                                <option value="#FFFFFF">Pure White</option>
+                                <option value="#00FF00">Neon Green</option>
+                                <option value="#FF0000">Alert Red</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Viral Overlays</label>
+                            <select id="thumb-sticker">
+                                <option value="">None</option>
+                                <option value="border">🔴 Red Clickbait Border</option>
+                                <option value="arrow">➡️ Huge Red Arrow</option>
+                                <option value="shock">😱 Shocked Emoji</option>
+                                <option value="circle">⭕ Red Circle</option>
+                            </select>
+                        </div>
                     </div>
+
+                    <button id="download-thumb-btn" class="btn btn-success">⬇️ Export Thumbnail (JPG)</button>
                 </div>
 
-                <div>
-                    <label>Top Text</label>
-                    <input type="text" id="thumb-text-top" placeholder="e.g., I WAS WRONG">
-                </div>
-                <div>
-                    <label>Bottom Text</label>
-                    <input type="text" id="thumb-text-bottom" placeholder="e.g., THE TRUTH">
+                <!-- Right Sidebar: Emoji List -->
+                <div class="emoji-sidebar">
+                    <h3>Copy & Paste Emojis</h3>
+                    <ul class="emoji-list">
+                        <li class="emoji-item">
+                            <span class="emoji-char">🚨</span>
+                            <button class="copy-btn" data-emoji="🚨">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">😱</span>
+                            <button class="copy-btn" data-emoji="😱">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">🤯</span>
+                            <button class="copy-btn" data-emoji="🤯">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">🔥</span>
+                            <button class="copy-btn" data-emoji="🔥">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">🛑</span>
+                            <button class="copy-btn" data-emoji="🛑">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">⚠️</span>
+                            <button class="copy-btn" data-emoji="⚠️">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">💸</span>
+                            <button class="copy-btn" data-emoji="💸">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">📉</span>
+                            <button class="copy-btn" data-emoji="📉">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">📈</span>
+                            <button class="copy-btn" data-emoji="📈">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">❌</span>
+                            <button class="copy-btn" data-emoji="❌">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">🔴</span>
+                            <button class="copy-btn" data-emoji="🔴">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">💀</span>
+                            <button class="copy-btn" data-emoji="💀">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">🤡</span>
+                            <button class="copy-btn" data-emoji="🤡">Copy</button>
+                        </li>
+                        <li class="emoji-item">
+                            <span class="emoji-char">👀</span>
+                            <button class="copy-btn" data-emoji="👀">Copy</button>
+                        </li>
+                    </ul>
                 </div>
 
-                <div>
-                    <label>Text Color</label>
-                    <select id="thumb-text-color">
-                        <option value="#FFFF00">Viral Yellow</option>
-                        <option value="#FFFFFF">Pure White</option>
-                        <option value="#00FF00">Neon Green</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Viral Features</label>
-                    <select id="thumb-sticker">
-                        <option value="">None</option>
-                        <option value="border">🔴 Red Clickbait Border</option>
-                        <option value="arrow">➡️ Huge Red Arrow</option>
-                        <option value="shock">😱 Shocked Emoji</option>
-                        <option value="circle">⭕ Red Circle</option>
-                    </select>
-                </div>
             </div>
-
-            <button id="download-thumb-btn" class="action-btn btn-success">⬇️ Download Thumbnail (JPG)</button>
         </div>
     </div>
 
@@ -475,16 +552,16 @@
         tabCompressor.addEventListener('click', () => {
             tabCompressor.classList.add('active');
             tabThumbnail.classList.remove('active');
-            viewCompressor.style.display = 'block';
-            viewThumbnail.style.display = 'none';
+            viewCompressor.classList.add('active');
+            viewThumbnail.classList.remove('active');
         });
 
         tabThumbnail.addEventListener('click', () => {
             tabThumbnail.classList.add('active');
             tabCompressor.classList.remove('active');
-            viewThumbnail.style.display = 'block';
-            viewCompressor.style.display = 'none';
-            drawThumbnail(); // Initial render
+            viewThumbnail.classList.add('active');
+            viewCompressor.classList.remove('active');
+            drawThumbnail(); 
         });
 
         // ==========================================
@@ -502,16 +579,23 @@
 
         let bgImage = null;
 
-        // Emoji Click-to-Copy Logic
-        const emojiBtns = document.querySelectorAll('.emoji-btn');
-        emojiBtns.forEach(btn => {
+        // Emoji Sidebar Click-to-Copy Logic
+        const copyBtns = document.querySelectorAll('.copy-btn');
+        copyBtns.forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                const emoji = e.target.innerText;
+                const emoji = e.target.getAttribute('data-emoji');
                 try {
                     await navigator.clipboard.writeText(emoji);
+                    
+                    // Visual Feedback
                     const originalText = e.target.innerText;
-                    e.target.innerText = '✅';
-                    setTimeout(() => { e.target.innerText = originalText; }, 800);
+                    e.target.innerText = 'Copied!';
+                    e.target.classList.add('copied');
+                    
+                    setTimeout(() => { 
+                        e.target.innerText = originalText; 
+                        e.target.classList.remove('copied');
+                    }, 1500);
                 } catch (err) {
                     console.error('Failed to copy text: ', err);
                 }
@@ -551,28 +635,26 @@
         thumbSticker.addEventListener('change', drawThumbnail);
 
         function drawThumbnail() {
-            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             // 1. Draw Background
             if (bgImage) {
-                // Calculate scale to cover canvas
                 const scale = Math.max(canvas.width / bgImage.width, canvas.height / bgImage.height);
                 const x = (canvas.width / 2) - (bgImage.width / 2) * scale;
                 const y = (canvas.height / 2) - (bgImage.height / 2) * scale;
                 ctx.drawImage(bgImage, x, y, bgImage.width * scale, bgImage.height * scale);
             } else {
-                ctx.fillStyle = '#1e293b'; 
+                ctx.fillStyle = '#18181b'; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#64748b';
-                ctx.font = '40px Inter, Arial';
+                ctx.fillStyle = '#3f3f46';
+                ctx.font = '500 40px Inter, sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('Upload a background image to start', canvas.width/2, canvas.height/2);
+                ctx.fillText('Upload an image to begin', canvas.width/2, canvas.height/2);
             }
 
-            // 2. Draw Viral Features (Stickers/Borders)
+            // 2. Draw Viral Features
             const sticker = thumbSticker.value;
-            ctx.shadowColor = 'transparent'; // Reset shadow before drawing stickers
+            ctx.shadowColor = 'transparent'; 
             if (sticker === 'border') {
                 ctx.strokeStyle = '#ef4444';
                 ctx.lineWidth = 30;
@@ -591,44 +673,39 @@
                 ctx.stroke();
             }
 
-            // 3. Draw Text (YouTube Viral Style: Impact font, large stroke, uppercase)
-            // Note: Keeping native emoji rendering intact, uppercase logic applies globally to text
+            // 3. Draw Text
             const topText = thumbTextTop.value.toUpperCase();
             const bottomText = thumbTextBottom.value.toUpperCase();
             
             ctx.textAlign = 'center';
-            ctx.font = 'bold 130px Impact, sans-serif';
+            ctx.font = '900 130px Impact, sans-serif';
             ctx.fillStyle = thumbTextColor.value;
             ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 25; // Thick stroke for readability on busy backgrounds
-            ctx.lineJoin = 'round'; // Smooth edges on the stroke
+            ctx.lineWidth = 25; 
+            ctx.lineJoin = 'round'; 
             
-            // Add slight drop shadow for extra pop
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-            ctx.shadowBlur = 15;
-            ctx.shadowOffsetX = 5;
-            ctx.shadowOffsetY = 5;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetX = 8;
+            ctx.shadowOffsetY = 8;
 
             if (topText) {
                 ctx.strokeText(topText, canvas.width / 2, 160);
-                ctx.shadowColor = 'transparent'; // Turn off shadow for fill
+                ctx.shadowColor = 'transparent'; 
                 ctx.fillText(topText, canvas.width / 2, 160);
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)'; // Turn back on
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; 
             }
             if (bottomText) {
                 ctx.strokeText(bottomText, canvas.width / 2, canvas.height - 60);
                 ctx.shadowColor = 'transparent';
                 ctx.fillText(bottomText, canvas.width / 2, canvas.height - 60);
             }
-            
-            // Reset shadow so it doesn't affect next render cycle
             ctx.shadowColor = 'transparent';
         }
 
-        // Handle Download
         downloadThumbBtn.addEventListener('click', () => {
             const link = document.createElement('a');
-            link.download = 'viral_thumbnail.jpg';
+            link.download = 'cookieclip_thumbnail.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
         });
@@ -648,8 +725,6 @@
         
         const trimStartInput = document.getElementById('trim-start');
         const trimEndInput = document.getElementById('trim-end');
-
-        // Meta UI elements
         const metaInfoBox = document.getElementById('video-meta-info');
         const metaRes = document.getElementById('meta-res');
         const metaDuration = document.getElementById('meta-duration');
@@ -657,7 +732,7 @@
         const warn4k = document.getElementById('4k-warn');
 
         let currentObjectUrl = null;
-        let loadedVideoMeta = null; // Stores {width, height, duration}
+        let loadedVideoMeta = null;
 
         const cleanupMemory = () => {
             if (currentObjectUrl) {
@@ -671,20 +746,14 @@
         };
 
         window.addEventListener('beforeunload', cleanupMemory);
-
-        // --- ENHANCED METADATA EXTRACTION & ESTIMATION ---
         
-        // Helper to format bytes
         function formatBytes(bytes, decimals = 2) {
             if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const k = 1024, dm = decimals < 0 ? 0 : decimals, sizes = ['Bytes', 'KB', 'MB', 'GB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         }
 
-        // Helper to format seconds
         function formatSeconds(seconds) {
             return new Date(seconds * 1000).toISOString().substr(11, 8);
         }
@@ -695,11 +764,7 @@
                 video.preload = 'metadata';
                 video.onloadedmetadata = function() {
                     URL.revokeObjectURL(video.src);
-                    resolve({
-                        duration: video.duration,
-                        width: video.videoWidth,
-                        height: video.videoHeight
-                    });
+                    resolve({ duration: video.duration, width: video.videoWidth, height: video.videoHeight });
                 }
                 video.src = URL.createObjectURL(file);
             });
@@ -717,33 +782,23 @@
                 estSizeValue.style.color = 'var(--danger)';
                 return;
             }
-            estSizeValue.style.color = '';
+            estSizeValue.style.color = '#818cf8';
 
-            const height = loadedVideoMeta.height;
-            const width = loadedVideoMeta.width;
-            
+            const { height, width } = loadedVideoMeta;
             let targetVideoBitrateBps = 0;
 
-            if (height >= 2160 || width >= 3840) { // 4K
-                targetVideoBitrateBps = 15000000; 
-                warn4k.style.display = 'block';
-            } else if (height >= 1440 || width >= 2560) { // 2K
-                targetVideoBitrateBps = 8000000;
-                warn4k.style.display = 'none';
-            } else if (height >= 1080 || width >= 1920) { // 1080p
-                targetVideoBitrateBps = 4000000;
-                warn4k.style.display = 'none';
-            } else { // 720p and below
-                targetVideoBitrateBps = 2000000; 
-                warn4k.style.display = 'none';
+            if (height >= 2160 || width >= 3840) { 
+                targetVideoBitrateBps = 15000000; warn4k.style.display = 'block';
+            } else if (height >= 1440 || width >= 2560) { 
+                targetVideoBitrateBps = 8000000; warn4k.style.display = 'none';
+            } else if (height >= 1080 || width >= 1920) { 
+                targetVideoBitrateBps = 4000000; warn4k.style.display = 'none';
+            } else { 
+                targetVideoBitrateBps = 2000000; warn4k.style.display = 'none';
             }
 
-            const audioBitrateBps = 128000;
-            const totalBitrateBps = targetVideoBitrateBps + audioBitrateBps;
-            const estimatedSizeBytes = (totalBitrateBps * finalDuration) / 8;
-            const finalEstimate = estimatedSizeBytes * 1.1;
-
-            estSizeValue.innerText = "~" + formatBytes(finalEstimate);
+            const estimatedSizeBytes = ((targetVideoBitrateBps + 128000) * finalDuration) / 8;
+            estSizeValue.innerText = "~" + formatBytes(estimatedSizeBytes * 1.1);
         };
 
         uploader.addEventListener('change', async (e) => {
@@ -754,13 +809,12 @@
                 return;
             }
 
-            message.innerText = "Reading video info...";
+            message.innerText = "Reading metadata...";
             loadedVideoMeta = await getVideoMetadata(file);
             message.innerText = "";
 
-            metaRes.innerText = `${loadedVideoMeta.width} x ${loadedVideoMeta.height}`;
+            metaRes.innerText = `${loadedVideoMeta.width}x${loadedVideoMeta.height}`;
             metaDuration.innerText = formatSeconds(loadedVideoMeta.duration);
-            
             trimStartInput.max = loadedVideoMeta.duration;
             trimEndInput.max = loadedVideoMeta.duration;
             
@@ -771,130 +825,63 @@
         trimStartInput.addEventListener('input', updateEstimate);
         trimEndInput.addEventListener('input', updateEstimate);
 
-        // --- ORIGINAL COMPRESSOR LOGIC ---
-
-        const getCachedFFmpegFile = async (url, type) => {
-            const cacheName = 'ffmpeg-engine-cache-v1';
-            const cache = await caches.open(cacheName);
-            let response = await cache.match(url);
-            
-            if (response) {
-                console.log(`Loaded FFmpeg ${type} from local cache.`);
-            } else {
-                console.log(`Downloading FFmpeg ${type} for the first time...`);
-                message.innerText = `Downloading FFmpeg engine (${type})... this only happens once!`;
-                response = await fetch(url);
-                if (response.ok) {
-                    await cache.put(url, response.clone());
-                } else {
-                    throw new Error(`Failed to download ${type}`);
-                }
-            }
-            
-            const blob = await response.blob();
-            return URL.createObjectURL(blob);
-        };
-
         const loadFFmpeg = async () => {
-            message.innerText = "Checking cache for FFmpeg engine...";
-            
             try {
-                const coreURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.js';
-                const wasmURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.wasm';
-                
-                const cachedCoreURL = await getCachedFFmpegFile(coreURL, 'Core JS');
-                const cachedWasmURL = await getCachedFFmpegFile(wasmURL, 'WASM');
-
                 ffmpeg.on('progress', ({ progress }) => {
                     const percent = Math.min(Math.max(Math.round(progress * 100), 0), 100);
                     progressBar.value = percent;
-                    statusText.innerText = `Processing... ${percent}%`;
+                    statusText.innerText = `Processing: ${percent}%`;
                 });
 
                 await ffmpeg.load({
-                    coreURL: cachedCoreURL,
-                    wasmURL: cachedWasmURL,
+                    coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.js',
+                    wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.wasm',
                 });
 
-                message.innerText = "Ready!";
                 convertBtn.innerText = "Compress & Trim Video";
                 convertBtn.disabled = false;
-
-                URL.revokeObjectURL(cachedCoreURL);
-                URL.revokeObjectURL(cachedWasmURL);
-
             } catch (error) {
-                console.error(error);
-                message.innerText = "Error loading FFmpeg engine. Please check your connection and refresh.";
+                message.innerText = "Failed to load processing engine. Check connection.";
             }
         };
 
         const processVideo = async () => {
             const file = uploader.files[0];
-            if (!file || !loadedVideoMeta) {
-                alert("Please select a video file first.");
-                return;
-            }
+            if (!file || !loadedVideoMeta) return alert("Select a video file first.");
 
             cleanupMemory();
             downloadLink.style.display = "none";
-
             const trimStart = parseFloat(trimStartInput.value) || 0;
             const trimEnd = parseFloat(trimEndInput.value) || 0;
-            
             const durationToKeep = loadedVideoMeta.duration - trimStart - trimEnd;
 
-            if (durationToKeep <= 0) {
-                alert("Your trim times remove the entire video! Please adjust the seconds.");
-                return;
-            }
+            if (durationToKeep <= 0) return alert("Trim times remove the whole video.");
 
             convertBtn.disabled = true;
             progressContainer.style.display = "block";
-            message.innerText = "Reading file into browser memory...";
+            message.innerText = "Writing to memory...";
 
             await ffmpeg.writeFile('input.mp4', await fetchFile(file));
+            message.innerText = "Encoding... keep this tab open.";
+            
+            const args = [];
+            if (trimStart > 0) args.push('-ss', String(trimStart));
+            if (trimStart > 0 || trimEnd > 0) args.push('-t', String(durationToKeep));
 
-            message.innerText = "Processing... Leave this tab open. 4K takes time.";
-            
-            const ffmpegArgs = [];
-            
-            if (trimStart > 0) {
-                ffmpegArgs.push('-ss', String(trimStart));
-            }
-            
-            if (trimStart > 0 || trimEnd > 0) {
-                ffmpegArgs.push('-t', String(durationToKeep));
-            }
-
-            ffmpegArgs.push('-i', 'input.mp4');
-            ffmpegArgs.push('-c:v', 'libx264');
-            ffmpegArgs.push('-crf', '23');
-            ffmpegArgs.push('-preset', 'veryfast');
-            ffmpegArgs.push('-pix_fmt', 'yuv420p'); 
-            
+            args.push('-i', 'input.mp4', '-c:v', 'libx264', '-crf', '23', '-preset', 'veryfast', '-pix_fmt', 'yuv420p'); 
             const is4k = loadedVideoMeta.height >= 2160 || loadedVideoMeta.width >= 3840;
-            ffmpegArgs.push('-profile:v', 'high', '-level', is4k ? '5.2' : '4.1');
-            ffmpegArgs.push('-c:a', 'aac', '-b:a', '128k');
-            ffmpegArgs.push('-movflags', '+faststart');
-            ffmpegArgs.push('output.mp4');
-
-            console.log("Running FFmpeg with args:", ffmpegArgs.join(' '));
+            args.push('-profile:v', 'high', '-level', is4k ? '5.2' : '4.1', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', 'output.mp4');
 
             try {
-                await ffmpeg.exec(ffmpegArgs);
-
-                message.innerText = "Finalizing file...";
+                await ffmpeg.exec(args);
+                message.innerText = "Packaging output...";
                 const data = await ffmpeg.readFile('output.mp4');
-                
                 currentObjectUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
                 downloadLink.href = currentObjectUrl;
                 downloadLink.style.display = "block";
-                
-                message.innerText = "Done! Click the link above to save.";
+                message.innerText = "Done!";
             } catch (e) {
-                console.error(e);
-                message.innerText = "Error during processing. Browser may have run out of memory (2GB limit). Try a shorter clip.";
+                message.innerText = "Memory limit reached (2GB max). Try shorter clips.";
             } finally {
                 progressContainer.style.display = "none";
                 convertBtn.disabled = false;
@@ -902,8 +889,6 @@
         };
 
         convertBtn.addEventListener('click', processVideo);
-        
-        // Start loading FFmpeg automatically
         loadFFmpeg();
     </script>
 </body>
