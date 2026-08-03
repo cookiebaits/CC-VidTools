@@ -97,6 +97,32 @@
         .message { margin-top: 10px; font-size: 14px; color: #4b5563; }
         .security-badge { font-size: 12px; color: #059669; background: #d1fae5; padding: 4px 8px; border-radius: 12px; display: inline-block; margin-bottom: 10px; }
 
+        /* Meta info styles */
+        .video-meta-info {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            display: none; /* Hidden until file loaded */
+        }
+        .meta-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        .meta-label { font-weight: 600; color: #6b7280; }
+        .meta-value { font-weight: 700; color: #111827; }
+        .est-size-box {
+            grid-column: span 2;
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .warn-text { color: #b91c1c; font-size: 12px; margin-top: 5px; display: block;}
+
         /* Thumbnail Maker Styles */
         #thumbnail-view { display: none; }
         canvas {
@@ -105,7 +131,7 @@
             border: 2px dashed #d1d5db;
             border-radius: 8px;
             margin-top: 20px;
-            background-color: #f3f4f6;
+            background-color: #f3f3f6;
         }
         .thumb-controls {
             display: grid;
@@ -132,9 +158,25 @@
     <div id="compressor-view" class="card">
         <span class="security-badge">🔒 Processes strictly offline in RAM. Clears when tab closes.</span>
         <h2>CookieClip Compressor</h2>
-        <p>Compress and trim your videos right in your browser for YouTube.</p>
+        <p>Compress and trim videos up to 4K/60fps right in your browser.</p>
         
         <input type="file" id="uploader" accept="video/*">
+
+        <!-- Input Video Metadata & Estimate -->
+        <div id="video-meta-info" class="video-meta-info">
+            <div class="meta-row">
+                <span class="meta-label">Original Resolution:</span>
+                <span id="meta-res" class="meta-value">--</span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-label">Original Duration:</span>
+                <span id="meta-duration" class="meta-value">--</span>
+            </div>
+            <div id="est-size-box" class="est-size-box">
+                Estimated Compressed Size: <span id="est-size-value">--</span>
+                <span id="4k-warn" class="warn-text" style="display:none;">⚠️ 4K encoding is memory intensive. Short clips recommended to avoid browser crash.</span>
+            </div>
+        </div>
         
         <div class="trim-controls">
             <label>Cut from Start (seconds)<input type="number" id="trim-start" value="0" min="0" step="0.1"></label>
@@ -208,8 +250,8 @@
     </div>
 
     <script type="module">
-        import { FFmpeg } from '[https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js](https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js)';
-        import { fetchFile } from '[https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js](https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js)';
+        import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js';
+        import { fetchFile } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
 
         // ==========================================
         // TAB NAVIGATION LOGIC
@@ -303,6 +345,7 @@
 
             // 2. Draw Viral Features (Stickers/Borders)
             const sticker = thumbSticker.value;
+            ctx.shadowColor = 'transparent'; // Reset shadow before drawing stickers
             if (sticker === 'border') {
                 ctx.strokeStyle = '#FF0000';
                 ctx.lineWidth = 30;
@@ -364,7 +407,7 @@
 
 
         // ==========================================
-        // VIDEO COMPRESSOR LOGIC (Original Code)
+        // VIDEO COMPRESSOR LOGIC
         // ==========================================
         const ffmpeg = new FFmpeg();
         const uploader = document.getElementById('uploader');
@@ -378,7 +421,15 @@
         const trimStartInput = document.getElementById('trim-start');
         const trimEndInput = document.getElementById('trim-end');
 
+        // Meta UI elements
+        const metaInfoBox = document.getElementById('video-meta-info');
+        const metaRes = document.getElementById('meta-res');
+        const metaDuration = document.getElementById('meta-duration');
+        const estSizeValue = document.getElementById('est-size-value');
+        const warn4k = document.getElementById('4k-warn');
+
         let currentObjectUrl = null;
+        let loadedVideoMeta = null; // Stores {width, height, duration}
 
         const cleanupMemory = () => {
             if (currentObjectUrl) {
@@ -393,17 +444,119 @@
 
         window.addEventListener('beforeunload', cleanupMemory);
 
-        const getVideoDuration = (file) => {
+        // --- ENHANCED METADATA EXTRACTION & ESTIMATION ---
+        
+        // Helper to format bytes
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        // Helper to format seconds
+        function formatSeconds(seconds) {
+            return new Date(seconds * 1000).toISOString().substr(11, 8);
+        }
+
+        const getVideoMetadata = (file) => {
             return new Promise((resolve) => {
                 const video = document.createElement('video');
                 video.preload = 'metadata';
                 video.onloadedmetadata = function() {
                     URL.revokeObjectURL(video.src);
-                    resolve(video.duration);
+                    resolve({
+                        duration: video.duration,
+                        width: video.videoWidth,
+                        height: video.videoHeight
+                    });
                 }
                 video.src = URL.createObjectURL(file);
             });
         };
+
+        // Calculate estimate based on YouTube recommended ingest bitrates
+        // adjusted for CRF 23 efficiency gains.
+        const updateEstimate = () => {
+            if (!loadedVideoMeta) return;
+
+            const trimStart = parseFloat(trimStartInput.value) || 0;
+            const trimEnd = parseFloat(trimEndInput.value) || 0;
+            const finalDuration = loadedVideoMeta.duration - trimStart - trimEnd;
+
+            if (finalDuration <= 0) {
+                estSizeValue.innerText = "Invalid Trim";
+                estSizeValue.style.color = 'red';
+                return;
+            }
+            estSizeValue.style.color = '';
+
+            const height = loadedVideoMeta.height;
+            const width = loadedVideoMeta.width;
+            
+            // Define target bitrates (bps) based on resolution. 
+            // Using logic for standard framerates, assumption is crf23 keeps it visual lossless
+            // while drastically reducing bitrate compared to raw camera/screen caps.
+            let targetVideoBitrateBps = 0;
+
+            if (height >= 2160 || width >= 3840) { // 4K
+                targetVideoBitrateBps = 15000000; // ~15 Mbps for crf23 4k
+                warn4k.style.display = 'block';
+            } else if (height >= 1440 || width >= 2560) { // 2K
+                targetVideoBitrateBps = 8000000; // ~8 Mbps
+                warn4k.style.display = 'none';
+            } else if (height >= 1080 || width >= 1920) { // 1080p
+                targetVideoBitrateBps = 4000000; // ~4 Mbps
+                warn4k.style.display = 'none';
+            } else { // 720p and below
+                targetVideoBitrateBps = 2000000; // ~2 Mbps
+                warn4k.style.display = 'none';
+            }
+
+            const audioBitrateBps = 128000; // 128 kbps
+            const totalBitrateBps = targetVideoBitrateBps + audioBitrateBps;
+            
+            // Size = Bitrate * Duration / 8 (bits to bytes)
+            const estimatedSizeBytes = (totalBitrateBps * finalDuration) / 8;
+            
+            // Add a 10% buffer for container overhead
+            const finalEstimate = estimatedSizeBytes * 1.1;
+
+            estSizeValue.innerText = "~" + formatBytes(finalEstimate);
+        };
+
+        // Wire up uploader to trigger metadata loading
+        uploader.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) {
+                metaInfoBox.style.display = 'none';
+                loadedVideoMeta = null;
+                return;
+            }
+
+            message.innerText = "Reading video info...";
+            loadedVideoMeta = await getVideoMetadata(file);
+            message.innerText = "";
+
+            // Update UI
+            metaRes.innerText = `${loadedVideoMeta.width} x ${loadedVideoMeta.height}`;
+            metaDuration.innerText = formatSeconds(loadedVideoMeta.duration);
+            
+            // Set max trim values based on actual duration
+            trimStartInput.max = loadedVideoMeta.duration;
+            trimEndInput.max = loadedVideoMeta.duration;
+            
+            metaInfoBox.style.display = 'block';
+            updateEstimate();
+        });
+
+        // Update estimate dynamically when trim changes
+        trimStartInput.addEventListener('input', updateEstimate);
+        trimEndInput.addEventListener('input', updateEstimate);
+
+        // --- ORIGINAL COMPRESSOR LOGIC (WITH ENHANCEMENTS) ---
 
         const getCachedFFmpegFile = async (url, type) => {
             const cacheName = 'ffmpeg-engine-cache-v1';
@@ -431,8 +584,8 @@
             message.innerText = "Checking cache for FFmpeg engine...";
             
             try {
-                const coreURL = '[https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.js](https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.js)';
-                const wasmURL = '[https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.wasm](https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.wasm)';
+                const coreURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.js';
+                const wasmURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm/ffmpeg-core.wasm';
                 
                 const cachedCoreURL = await getCachedFFmpegFile(coreURL, 'Core JS');
                 const cachedWasmURL = await getCachedFFmpegFile(wasmURL, 'WASM');
@@ -463,7 +616,7 @@
 
         const processVideo = async () => {
             const file = uploader.files[0];
-            if (!file) {
+            if (!file || !loadedVideoMeta) {
                 alert("Please select a video file first.");
                 return;
             }
@@ -474,8 +627,7 @@
             const trimStart = parseFloat(trimStartInput.value) || 0;
             const trimEnd = parseFloat(trimEndInput.value) || 0;
             
-            const totalDuration = await getVideoDuration(file);
-            const durationToKeep = totalDuration - trimStart - trimEnd;
+            const durationToKeep = loadedVideoMeta.duration - trimStart - trimEnd;
 
             if (durationToKeep <= 0) {
                 alert("Your trim times remove the entire video! Please adjust the seconds.");
@@ -488,35 +640,71 @@
 
             await ffmpeg.writeFile('input.mp4', await fetchFile(file));
 
-            message.innerText = "Processing... Leave this tab open.";
+            message.innerText = "Processing... Leave this tab open. 4K takes time.";
             
             const ffmpegArgs = [];
-            if (trimStart > 0) ffmpegArgs.push('-ss', String(trimStart));
-            if (trimStart > 0 || trimEnd > 0) ffmpegArgs.push('-t', String(durationToKeep));
-
-            ffmpegArgs.push(
-                '-i', 'input.mp4',
-                '-c:v', 'libx264',
-                '-crf', '23', 
-                '-preset', 'veryfast',
-                '-c:a', 'aac',
-                '-b:a', '128k',
-                '-movflags', '+faststart',
-                'output.mp4'
-            );
-
-            await ffmpeg.exec(ffmpegArgs);
-
-            message.innerText = "Finalizing file...";
-            const data = await ffmpeg.readFile('output.mp4');
             
-            currentObjectUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-            downloadLink.href = currentObjectUrl;
-            downloadLink.style.display = "block";
+            // Fast seeking input option
+            if (trimStart > 0) {
+                ffmpegArgs.push('-ss', String(trimStart));
+            }
             
-            message.innerText = "Done! Click the link above to save.";
-            progressContainer.style.display = "none";
-            convertBtn.disabled = false;
+            // Duration output option
+            if (trimStart > 0 || trimEnd > 0) {
+                ffmpegArgs.push('-t', String(durationToKeep));
+            }
+
+            ffmpegArgs.push('-i', 'input.mp4');
+
+            // --- ENHANCED COMPRESSION SETTINGS ---
+            
+            // 1. Video Codec
+            ffmpegArgs.push('-c:v', 'libx264');
+            
+            // 2. Quality (CRF 23 is YouTube sweet spot)
+            ffmpegArgs.push('-crf', '23');
+            
+            // 3. Preset (veryfast keeps browser stable, upgrade to 'faster' if cpu allows)
+            ffmpegArgs.push('-preset', 'veryfast');
+
+            // 4. Enhanced Compatibility & 4K/60 support
+            // Ensure pixel format is standard yuv420p (required for YouTube ingest from varied sources)
+            ffmpegArgs.push('-pix_fmt', 'yuv420p'); 
+            
+            // Force High Profile. Determine level based on resolution.
+            // 4K@60fps requires Level 5.2. 1080p requires 4.1.
+            const is4k = loadedVideoMeta.height >= 2160 || loadedVideoMeta.width >= 3840;
+            ffmpegArgs.push('-profile:v', 'high', '-level', is4k ? '5.2' : '4.1');
+
+            // 5. Audio Codec (AAC standard)
+            ffmpegArgs.push('-c:a', 'aac', '-b:a', '128k');
+
+            // 6. YouTube FastStart flag
+            ffmpegArgs.push('-movflags', '+faststart');
+
+            // 7. Output file
+            ffmpegArgs.push('output.mp4');
+
+            console.log("Running FFmpeg with args:", ffmpegArgs.join(' '));
+
+            try {
+                await ffmpeg.exec(ffmpegArgs);
+
+                message.innerText = "Finalizing file...";
+                const data = await ffmpeg.readFile('output.mp4');
+                
+                currentObjectUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+                downloadLink.href = currentObjectUrl;
+                downloadLink.style.display = "block";
+                
+                message.innerText = "Done! Click the link above to save.";
+            } catch (e) {
+                console.error(e);
+                message.innerText = "Error during processing. Browser may have run out of memory (2GB limit). Try a shorter clip.";
+            } finally {
+                progressContainer.style.display = "none";
+                convertBtn.disabled = false;
+            }
         };
 
         convertBtn.addEventListener('click', processVideo);
