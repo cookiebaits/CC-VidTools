@@ -3,250 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CookieClip Studio</title>
+    <title>CookieClip Video Tools</title>
     <script src="coi-serviceworker.js"></script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f9fafb;
-            color: #111827;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            text-align: center;
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
         }
-        
-        /* Tab Navigation */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 840px;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+
+        /* Tab Navigation - Modern Segmented Control */
         .tab-container {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .tab-btn {
-            background-color: #e5e7eb;
-            color: #4b5563;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-        }
-        .tab-btn.active {
-            background-color: #ff0000;
-            color: white;
-            box-shadow: 0 4px 6px rgba(255, 0, 0, 0.2);
-        }
-        .tab-btn:hover:not(.active) {
-            background-color: #d1d5db;
+            background-color: #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            gap: 0.5rem;
         }
 
+        .tab-btn {
+            flex: 1;
+            background-color: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-main);
+        }
+
+        /* Cards */
         .card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.4s ease-out;
         }
-        
-        input[type="file"], select, input[type="text"] {
-            margin: 10px 0;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-header p {
+            color: var(--text-muted);
+        }
+
+        /* Form Elements */
+        input[type="file"], select, input[type="text"], input[type="number"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 16px;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--text-main);
+            background-color: #f8fafc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            margin-bottom: 0.5rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        /* Controls Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        .full-width {
+            grid-column: span 2;
         }
         
-        /* Compressor Styles */
-        .trim-controls {
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .panel {
+            background: #f1f5f9;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Buttons */
+        .action-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .action-btn:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success { background-color: var(--success); }
+        .btn-success:hover:not(:disabled) { background-color: #059669; }
+
+        /* Metadata & Progress */
+        #video-meta-info {
+            display: none;
+        }
+
+        .meta-row {
             display: flex;
             justify-content: space-between;
-            gap: 15px;
-            margin-bottom: 20px;
-            text-align: left;
-            background: #f3f4f6;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.875rem;
         }
-        .trim-controls label {
-            display: flex; flex-direction: column; font-size: 14px; font-weight: 500; width: 100%;
-        }
-
-        .action-btn {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-            width: 100%;
-            margin-top: 10px;
-        }
-        .action-btn:hover { background-color: #1d4ed8; }
-        .action-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
-
-        #progress-container { margin-top: 20px; display: none; }
-        progress { width: 100%; height: 20px; }
-        .download-link { display: none; margin-top: 20px; color: #059669; font-weight: bold; text-decoration: none; font-size: 18px; }
-        .message { margin-top: 10px; font-size: 14px; color: #4b5563; }
-        .security-badge { font-size: 12px; color: #059669; background: #d1fae5; padding: 4px 8px; border-radius: 12px; display: inline-block; margin-bottom: 10px; }
-
-        /* Meta info styles */
-        .video-meta-info {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: left;
-            display: none; /* Hidden until file loaded */
-        }
-        .meta-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
-        .meta-label { font-weight: 600; color: #6b7280; }
-        .meta-value { font-weight: 700; color: #111827; }
+        
+        .meta-row:last-of-type { border-bottom: none; }
+        
+        .meta-label { color: var(--text-muted); font-weight: 500; }
+        .meta-value { font-weight: 600; }
+        
         .est-size-box {
-            grid-column: span 2;
-            background-color: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1e40af;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
+            background-color: #e0e7ff;
+            border: 1px solid #c7d2fe;
+            color: #3730a3;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
             text-align: center;
-            font-weight: bold;
+            font-weight: 700;
         }
-        .warn-text { color: #b91c1c; font-size: 12px; margin-top: 5px; display: block;}
+        
+        #progress-container { margin-top: 1.5rem; display: none; text-align: center; }
+        #status-text { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 500; }
+        progress {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            appearance: none;
+        }
+        progress::-webkit-progress-bar { background-color: #e2e8f0; }
+        progress::-webkit-progress-value { background-color: var(--primary); transition: width 0.2s; }
 
-        /* Thumbnail Maker Styles */
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #065f46;
+            background: #d1fae5;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .warn-text { color: var(--danger); font-size: 0.75rem; margin-top: 0.5rem; display: block; font-weight: normal;}
+        .message { margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted); text-align: center; }
+
+        .download-link {
+            display: none;
+            margin-top: 1.5rem;
+            color: var(--success);
+            font-weight: 700;
+            text-decoration: none;
+            text-align: center;
+            padding: 1rem;
+            border: 2px dashed var(--success);
+            border-radius: 8px;
+            background: #f0fdf4;
+            transition: all 0.2s;
+        }
+        .download-link:hover { background: #dcfce7; }
+
+        /* Thumbnail Maker */
         #thumbnail-view { display: none; }
         canvas {
             width: 100%;
             height: auto;
-            border: 2px dashed #d1d5db;
-            border-radius: 8px;
-            margin-top: 20px;
-            background-color: #f3f3f6;
+            aspect-ratio: 16/9;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            background-color: #e2e8f0;
+            /* Checkerboard pattern for transparency visualization */
+            background-image: linear-gradient(45deg, #cbd5e1 25%, transparent 25%), linear-gradient(-45deg, #cbd5e1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #cbd5e1 75%), linear-gradient(-45deg, transparent 75%, #cbd5e1 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        .thumb-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            text-align: left;
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-        }
-        .thumb-controls label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 5px; }
-        .full-width { grid-column: span 2; }
     </style>
 </head>
 <body>
 
-    <div class="tab-container">
-        <button id="tab-compressor" class="tab-btn active">🎥 Video Compressor</button>
-        <button id="tab-thumbnail" class="tab-btn">🖼️ Thumbnail Maker</button>
-    </div>
+    <div class="container">
+        <h1 class="header-title">CookieClip Video Tools</h1>
 
-    <!-- VIDEO COMPRESSOR VIEW -->
-    <div id="compressor-view" class="card">
-        <span class="security-badge">🔒 Processes strictly offline in RAM. Clears when tab closes.</span>
-        <h2>CookieClip Compressor</h2>
-        <p>Compress and trim videos up to 4K/60fps right in your browser.</p>
-        
-        <input type="file" id="uploader" accept="video/*">
-
-        <!-- Input Video Metadata & Estimate -->
-        <div id="video-meta-info" class="video-meta-info">
-            <div class="meta-row">
-                <span class="meta-label">Original Resolution:</span>
-                <span id="meta-res" class="meta-value">--</span>
-            </div>
-            <div class="meta-row">
-                <span class="meta-label">Original Duration:</span>
-                <span id="meta-duration" class="meta-value">--</span>
-            </div>
-            <div id="est-size-box" class="est-size-box">
-                Estimated Compressed Size: <span id="est-size-value">--</span>
-                <span id="4k-warn" class="warn-text" style="display:none;">⚠️ 4K encoding is memory intensive. Short clips recommended to avoid browser crash.</span>
-            </div>
-        </div>
-        
-        <div class="trim-controls">
-            <label>Cut from Start (seconds)<input type="number" id="trim-start" value="0" min="0" step="0.1"></label>
-            <label>Cut from End (seconds)<input type="number" id="trim-end" value="0" min="0" step="0.1"></label>
+        <div class="tab-container">
+            <button id="tab-compressor" class="tab-btn active">🎥 Video Compressor</button>
+            <button id="tab-thumbnail" class="tab-btn">🖼️ Thumbnail Maker</button>
         </div>
 
-        <button id="convert-btn" class="action-btn" disabled>Load FFmpeg to Start</button>
+        <!-- VIDEO COMPRESSOR VIEW -->
+        <div id="compressor-view" class="card">
+            <div class="card-header">
+                <span class="security-badge">🔒 Processes strictly offline in RAM. Clears when tab closes.</span>
+                <h2>Browser Video Compressor</h2>
+                <p>Compress and trim videos up to 4K/60fps locally.</p>
+            </div>
+            
+            <div class="panel">
+                <label>Upload Video</label>
+                <input type="file" id="uploader" accept="video/*">
+            </div>
 
-        <div id="progress-container">
-            <p id="status-text">Compressing...</p>
-            <progress id="progress-bar" value="0" max="100"></progress>
+            <!-- Input Video Metadata & Estimate -->
+            <div id="video-meta-info" class="panel">
+                <div class="meta-row">
+                    <span class="meta-label">Original Resolution:</span>
+                    <span id="meta-res" class="meta-value">--</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Original Duration:</span>
+                    <span id="meta-duration" class="meta-value">--</span>
+                </div>
+                <div id="est-size-box" class="est-size-box">
+                    Estimated Compressed Size: <br>
+                    <span id="est-size-value" style="font-size: 1.25rem;">--</span>
+                    <span id="4k-warn" class="warn-text" style="display:none;">⚠️ 4K encoding is memory intensive. Short clips recommended to avoid browser crash.</span>
+                </div>
+            </div>
+            
+            <div class="panel grid-2">
+                <div>
+                    <label>Cut from Start (seconds)</label>
+                    <input type="number" id="trim-start" value="0" min="0" step="0.1">
+                </div>
+                <div>
+                    <label>Cut from End (seconds)</label>
+                    <input type="number" id="trim-end" value="0" min="0" step="0.1">
+                </div>
+            </div>
+
+            <button id="convert-btn" class="action-btn" disabled>Load FFmpeg to Start</button>
+
+            <div id="progress-container">
+                <p id="status-text">Compressing...</p>
+                <progress id="progress-bar" value="0" max="100"></progress>
+            </div>
+
+            <a id="download-link" class="download-link" href="#" download="compressed_for_youtube.mp4">⬇️ Download Compressed Video</a>
+            <p id="message" class="message"></p>
         </div>
 
-        <a id="download-link" class="download-link" href="#" download="compressed_for_youtube.mp4">⬇️ Download Compressed Video</a>
-        <p id="message" class="message"></p>
-    </div>
-
-    <!-- THUMBNAIL MAKER VIEW -->
-    <div id="thumbnail-view" class="card">
-        <h2>Viral Thumbnail Maker</h2>
-        <p>Create high-CTR YouTube thumbnails instantly.</p>
-
-        <div class="thumb-controls">
-            <div class="full-width">
-                <label>1. Background Image</label>
-                <input type="file" id="thumb-bg-upload" accept="image/png, image/jpeg, image/webp, image/gif">
+        <!-- THUMBNAIL MAKER VIEW -->
+        <div id="thumbnail-view" class="card">
+            <div class="card-header">
+                <h2>Viral Thumbnail Maker</h2>
+                <p>Create high-CTR YouTube thumbnails instantly.</p>
             </div>
 
-            <div class="full-width">
-                <label>2. Viral Text Presets</label>
-                <select id="thumb-preset">
-                    <option value="">-- Custom Text --</option>
-                    <option value="SCAM EXPOSED!|WATCH THIS FIRST">Scam Exposed!</option>
-                    <option value="I WAS WRONG.|THE TRUTH!">I Was Wrong / The Truth</option>
-                    <option value="DO NOT BUY THIS!|100% HONEST REVIEW">Do Not Buy This!</option>
-                    <option value="THEY TRIED TO HIDE THIS|🚨🚨🚨">They Tried to Hide This</option>
-                </select>
+            <canvas id="thumb-canvas" width="1280" height="720"></canvas>
+
+            <div class="panel grid-2">
+                <div class="full-width">
+                    <label>1. Background Image</label>
+                    <input type="file" id="thumb-bg-upload" accept="image/png, image/jpeg, image/webp, image/gif">
+                </div>
+
+                <div class="full-width">
+                    <label>2. Viral Text Presets</label>
+                    <select id="thumb-preset">
+                        <option value="">-- Custom Text --</option>
+                        <option value="SCAM EXPOSED!|WATCH THIS FIRST">Scam Exposed!</option>
+                        <option value="I WAS WRONG.|THE TRUTH!">I Was Wrong / The Truth</option>
+                        <option value="DO NOT BUY THIS!|100% HONEST REVIEW">Do Not Buy This!</option>
+                        <option value="THEY TRIED TO HIDE THIS|🚨🚨🚨">They Tried to Hide This</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Top Text</label>
+                    <input type="text" id="thumb-text-top" placeholder="e.g., I WAS WRONG">
+                </div>
+                <div>
+                    <label>Bottom Text</label>
+                    <input type="text" id="thumb-text-bottom" placeholder="e.g., THE TRUTH">
+                </div>
+
+                <div>
+                    <label>Text Color</label>
+                    <select id="thumb-text-color">
+                        <option value="#FFFF00">Viral Yellow</option>
+                        <option value="#FFFFFF">Pure White</option>
+                        <option value="#00FF00">Neon Green</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Viral Features</label>
+                    <select id="thumb-sticker">
+                        <option value="">None</option>
+                        <option value="border">🔴 Red Clickbait Border</option>
+                        <option value="arrow">➡️ Huge Red Arrow</option>
+                        <option value="shock">😱 Shocked Emoji</option>
+                        <option value="circle">⭕ Red Circle</option>
+                    </select>
+                </div>
             </div>
 
-            <div>
-                <label>Top Text</label>
-                <input type="text" id="thumb-text-top" placeholder="e.g., I WAS WRONG">
-            </div>
-            <div>
-                <label>Bottom Text</label>
-                <input type="text" id="thumb-text-bottom" placeholder="e.g., THE TRUTH">
-            </div>
-
-            <div>
-                <label>Text Color</label>
-                <select id="thumb-text-color">
-                    <option value="#FFFF00">Viral Yellow</option>
-                    <option value="#FFFFFF">Pure White</option>
-                    <option value="#00FF00">Neon Green</option>
-                </select>
-            </div>
-            <div>
-                <label>Viral Features</label>
-                <select id="thumb-sticker">
-                    <option value="">None</option>
-                    <option value="border">🔴 Red Clickbait Border</option>
-                    <option value="arrow">➡️ Huge Red Arrow</option>
-                    <option value="shock">😱 Shocked Emoji</option>
-                    <option value="circle">⭕ Red Circle</option>
-                </select>
-            </div>
+            <button id="download-thumb-btn" class="action-btn btn-success">⬇️ Download Thumbnail (JPG)</button>
         </div>
-
-        <canvas id="thumb-canvas" width="1280" height="720"></canvas>
-        <button id="download-thumb-btn" class="action-btn" style="background-color: #059669;">⬇️ Download Thumbnail (JPG)</button>
     </div>
 
     <script type="module">
@@ -335,10 +489,10 @@
                 const y = (canvas.height / 2) - (bgImage.height / 2) * scale;
                 ctx.drawImage(bgImage, x, y, bgImage.width * scale, bgImage.height * scale);
             } else {
-                ctx.fillStyle = '#1f2937'; // Dark gray placeholder
+                ctx.fillStyle = '#1e293b'; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#4b5563';
-                ctx.font = '40px Arial';
+                ctx.fillStyle = '#64748b';
+                ctx.font = '40px Inter, Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('Upload a background image to start', canvas.width/2, canvas.height/2);
             }
@@ -347,7 +501,7 @@
             const sticker = thumbSticker.value;
             ctx.shadowColor = 'transparent'; // Reset shadow before drawing stickers
             if (sticker === 'border') {
-                ctx.strokeStyle = '#FF0000';
+                ctx.strokeStyle = '#ef4444';
                 ctx.lineWidth = 30;
                 ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
             } else if (sticker === 'arrow') {
@@ -357,7 +511,7 @@
                 ctx.font = '250px Arial';
                 ctx.fillText('😱', canvas.width - 200, canvas.height / 2 + 80);
             } else if (sticker === 'circle') {
-                ctx.strokeStyle = '#FF0000';
+                ctx.strokeStyle = '#ef4444';
                 ctx.lineWidth = 20;
                 ctx.beginPath();
                 ctx.arc(canvas.width / 2, canvas.height / 2, 200, 0, 2 * Math.PI);
@@ -477,8 +631,6 @@
             });
         };
 
-        // Calculate estimate based on YouTube recommended ingest bitrates
-        // adjusted for CRF 23 efficiency gains.
         const updateEstimate = () => {
             if (!loadedVideoMeta) return;
 
@@ -488,7 +640,7 @@
 
             if (finalDuration <= 0) {
                 estSizeValue.innerText = "Invalid Trim";
-                estSizeValue.style.color = 'red';
+                estSizeValue.style.color = 'var(--danger)';
                 return;
             }
             estSizeValue.style.color = '';
@@ -496,38 +648,30 @@
             const height = loadedVideoMeta.height;
             const width = loadedVideoMeta.width;
             
-            // Define target bitrates (bps) based on resolution. 
-            // Using logic for standard framerates, assumption is crf23 keeps it visual lossless
-            // while drastically reducing bitrate compared to raw camera/screen caps.
             let targetVideoBitrateBps = 0;
 
             if (height >= 2160 || width >= 3840) { // 4K
-                targetVideoBitrateBps = 15000000; // ~15 Mbps for crf23 4k
+                targetVideoBitrateBps = 15000000; 
                 warn4k.style.display = 'block';
             } else if (height >= 1440 || width >= 2560) { // 2K
-                targetVideoBitrateBps = 8000000; // ~8 Mbps
+                targetVideoBitrateBps = 8000000;
                 warn4k.style.display = 'none';
             } else if (height >= 1080 || width >= 1920) { // 1080p
-                targetVideoBitrateBps = 4000000; // ~4 Mbps
+                targetVideoBitrateBps = 4000000;
                 warn4k.style.display = 'none';
             } else { // 720p and below
-                targetVideoBitrateBps = 2000000; // ~2 Mbps
+                targetVideoBitrateBps = 2000000; 
                 warn4k.style.display = 'none';
             }
 
-            const audioBitrateBps = 128000; // 128 kbps
+            const audioBitrateBps = 128000;
             const totalBitrateBps = targetVideoBitrateBps + audioBitrateBps;
-            
-            // Size = Bitrate * Duration / 8 (bits to bytes)
             const estimatedSizeBytes = (totalBitrateBps * finalDuration) / 8;
-            
-            // Add a 10% buffer for container overhead
             const finalEstimate = estimatedSizeBytes * 1.1;
 
             estSizeValue.innerText = "~" + formatBytes(finalEstimate);
         };
 
-        // Wire up uploader to trigger metadata loading
         uploader.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) {
@@ -540,11 +684,9 @@
             loadedVideoMeta = await getVideoMetadata(file);
             message.innerText = "";
 
-            // Update UI
             metaRes.innerText = `${loadedVideoMeta.width} x ${loadedVideoMeta.height}`;
             metaDuration.innerText = formatSeconds(loadedVideoMeta.duration);
             
-            // Set max trim values based on actual duration
             trimStartInput.max = loadedVideoMeta.duration;
             trimEndInput.max = loadedVideoMeta.duration;
             
@@ -552,11 +694,10 @@
             updateEstimate();
         });
 
-        // Update estimate dynamically when trim changes
         trimStartInput.addEventListener('input', updateEstimate);
         trimEndInput.addEventListener('input', updateEstimate);
 
-        // --- ORIGINAL COMPRESSOR LOGIC (WITH ENHANCEMENTS) ---
+        // --- ORIGINAL COMPRESSOR LOGIC ---
 
         const getCachedFFmpegFile = async (url, type) => {
             const cacheName = 'ffmpeg-engine-cache-v1';
@@ -644,45 +785,24 @@
             
             const ffmpegArgs = [];
             
-            // Fast seeking input option
             if (trimStart > 0) {
                 ffmpegArgs.push('-ss', String(trimStart));
             }
             
-            // Duration output option
             if (trimStart > 0 || trimEnd > 0) {
                 ffmpegArgs.push('-t', String(durationToKeep));
             }
 
             ffmpegArgs.push('-i', 'input.mp4');
-
-            // --- ENHANCED COMPRESSION SETTINGS ---
-            
-            // 1. Video Codec
             ffmpegArgs.push('-c:v', 'libx264');
-            
-            // 2. Quality (CRF 23 is YouTube sweet spot)
             ffmpegArgs.push('-crf', '23');
-            
-            // 3. Preset (veryfast keeps browser stable, upgrade to 'faster' if cpu allows)
             ffmpegArgs.push('-preset', 'veryfast');
-
-            // 4. Enhanced Compatibility & 4K/60 support
-            // Ensure pixel format is standard yuv420p (required for YouTube ingest from varied sources)
             ffmpegArgs.push('-pix_fmt', 'yuv420p'); 
             
-            // Force High Profile. Determine level based on resolution.
-            // 4K@60fps requires Level 5.2. 1080p requires 4.1.
             const is4k = loadedVideoMeta.height >= 2160 || loadedVideoMeta.width >= 3840;
             ffmpegArgs.push('-profile:v', 'high', '-level', is4k ? '5.2' : '4.1');
-
-            // 5. Audio Codec (AAC standard)
             ffmpegArgs.push('-c:a', 'aac', '-b:a', '128k');
-
-            // 6. YouTube FastStart flag
             ffmpegArgs.push('-movflags', '+faststart');
-
-            // 7. Output file
             ffmpegArgs.push('output.mp4');
 
             console.log("Running FFmpeg with args:", ffmpegArgs.join(' '));
