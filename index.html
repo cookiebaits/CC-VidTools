@@ -35,6 +35,7 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
+        /* Centered Viewport Layout */
         body {
             background-color: var(--bg-base);
             color: var(--text-main);
@@ -52,6 +53,7 @@
             margin: 0 auto;
         }
 
+        /* Header (GifMaker Style) */
         .header {
             text-align: center;
             margin-bottom: 2rem;
@@ -78,6 +80,7 @@
             margin-top: 0.5rem;
         }
 
+        /* Segmented Navigation Tabs */
         .tab-nav-wrapper {
             display: flex;
             justify-content: center;
@@ -111,6 +114,7 @@
             box-shadow: 0 4px 12px rgba(91, 70, 246, 0.4);
         }
 
+        /* Views */
         .view-section {
             display: none;
             width: 100%;
@@ -120,6 +124,7 @@
             display: block;
         }
 
+        /* Outer Centered Dashboard Container */
         .card-container {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -129,6 +134,7 @@
             margin: 0 auto;
         }
 
+        /* 2-Column Dashboard Grid */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 440px 1fr;
@@ -142,6 +148,7 @@
             }
         }
 
+        /* Control Stack Panels */
         .control-stack {
             display: flex;
             flex-direction: column;
@@ -165,6 +172,7 @@
             gap: 0.5rem;
         }
 
+        /* Form Elements */
         label {
             display: block;
             font-size: 0.8rem;
@@ -227,19 +235,20 @@
             background: linear-gradient(135deg, #10b981, #059669);
         }
 
+        /* Sticker Overlay Badges */
         .overlay-badge-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         .sticker-badge-btn {
             background: #232d42;
             border: 1px solid var(--border-color);
             color: #d1d5db;
-            padding: 0.45rem 0.85rem;
+            padding: 0.4rem 0.7rem;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -251,6 +260,7 @@
             border-color: var(--accent-purple);
         }
 
+        /* Canvas Workspace */
         .canvas-container {
             display: flex;
             flex-direction: column;
@@ -268,6 +278,7 @@
             cursor: crosshair;
         }
 
+        /* Right Side Emoji Quick Panel */
         .emoji-panel {
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
@@ -306,6 +317,7 @@
             font-weight: 600;
         }
 
+        /* Checkbox & Helpers */
         .checkbox-row {
             display: flex;
             align-items: center;
@@ -328,6 +340,7 @@
             margin-top: 0.4rem;
         }
 
+        /* Security Pill & Progress */
         .security-badge {
             display: inline-block;
             font-size: 0.75rem;
@@ -396,7 +409,7 @@
             font-size: 0.8rem;
             font-weight: 700;
             color: #a5b4fc;
-            min-width: 42px;
+            min-width: 48px;
             text-align: right;
         }
     </style>
@@ -458,7 +471,7 @@
                                 <div>
                                     <label>Font Size</label>
                                     <div class="slider-row">
-                                        <input type="range" id="font-size-slider" min="60" max="220" value="130">
+                                        <input type="range" id="font-size-slider" min="50" max="220" value="130">
                                         <span id="font-size-val" class="slider-value">130px</span>
                                     </div>
                                 </div>
@@ -480,28 +493,36 @@
                         </div>
 
                         <div class="panel-box">
-                            <div class="panel-title">3. Draggable Overlays</div>
+                            <div class="panel-title">3. Draggable Overlays (Click to Add)</div>
                             <div class="overlay-badge-grid">
                                 <button class="sticker-badge-btn" data-sticker="arrow">➡️ Red Arrow</button>
+                                <button class="sticker-badge-btn" data-sticker="arrow_curved">↪️ Curved Arrow</button>
                                 <button class="sticker-badge-btn" data-sticker="circle">⭕ Red Circle</button>
-                                <button class="sticker-badge-btn" data-sticker="shock">😱 Shocked Face</button>
+                                <button class="sticker-badge-btn" data-sticker="box">🟥 Red Box</button>
+                                <button class="sticker-badge-btn" data-sticker="shock">😱 Shocked</button>
+                                <button class="sticker-badge-btn" data-sticker="mindblown">🤯 Mindblown</button>
                                 <button class="sticker-badge-btn" data-sticker="fire">🔥 Fire</button>
                                 <button class="sticker-badge-btn" data-sticker="money">💰 Money</button>
                                 <button class="sticker-badge-btn" data-sticker="question">❓ Question</button>
                                 <button class="sticker-badge-btn" data-sticker="cross">❌ Red X</button>
                                 <button class="sticker-badge-btn" data-sticker="siren">🚨 Siren</button>
                                 <button class="sticker-badge-btn" data-sticker="100">💯 100</button>
+                                <button class="sticker-badge-btn" data-sticker="skull">💀 Skull</button>
+                                <button class="sticker-badge-btn" data-sticker="clown">🤡 Clown</button>
+                                <button class="sticker-badge-btn" data-sticker="eyes">👀 Eyes</button>
+                                <button class="sticker-badge-btn" data-sticker="verified">✔️ Verified</button>
+                                <button class="sticker-badge-btn" data-sticker="crown">👑 Crown</button>
                             </div>
 
-                            <div id="selected-overlay-controls" style="margin-top: 1rem; display: none;">
-                                <label id="selected-overlay-label">Selected Overlay Scale</label>
+                            <div style="margin-top: 1rem;">
+                                <label id="selected-overlay-label">Overlay Scale (Active/Selected)</label>
                                 <div class="slider-row">
-                                    <input type="range" id="overlay-size-slider" min="50" max="400" value="100">
+                                    <input type="range" id="overlay-size-slider" min="20" max="300" value="100">
                                     <span id="overlay-size-val" class="slider-value">100%</span>
                                 </div>
                             </div>
 
-                            <p class="help-text">Click/drag items on canvas to select or move them. Double-click to remove.</p>
+                            <p class="help-text">Click/drag items on canvas to move & resize them. Double-click an item to delete it.</p>
                         </div>
 
                         <button id="download-thumb-btn" class="btn btn-success">⬇️ Download Thumbnail (JPG)</button>
@@ -626,7 +647,6 @@
         const fontSizeVal = document.getElementById('font-size-val');
         const overlaySizeSlider = document.getElementById('overlay-size-slider');
         const overlaySizeVal = document.getElementById('overlay-size-val');
-        const selectedOverlayControls = document.getElementById('selected-overlay-controls');
         const selectedOverlayLabel = document.getElementById('selected-overlay-label');
         const downloadThumbBtn = document.getElementById('download-thumb-btn');
 
@@ -636,15 +656,23 @@
         let selectedObj = null;
 
         const overlayDefs = {
-            'arrow': { type: 'text', content: '➡️', size: 240, label: 'Arrow' },
+            'arrow': { type: 'text', content: '➡️', size: 240, label: 'Red Arrow' },
+            'arrow_curved': { type: 'text', content: '↪️', size: 240, label: 'Curved Arrow' },
+            'circle': { type: 'circle', radius: 140, label: 'Red Circle' },
+            'box': { type: 'box', size: 240, label: 'Red Box' },
             'shock': { type: 'text', content: '😱', size: 240, label: 'Shocked Face' },
+            'mindblown': { type: 'text', content: '🤯', size: 240, label: 'Mindblown' },
             'fire': { type: 'text', content: '🔥', size: 240, label: 'Fire' },
             'money': { type: 'text', content: '💰', size: 240, label: 'Money' },
-            'question': { type: 'text', content: '❓', size: 240, label: 'Question' },
-            'cross': { type: 'text', content: '❌', size: 240, label: 'Cross' },
+            'question': { type: 'text', content: '❓', size: 240, label: 'Question Mark' },
+            'cross': { type: 'text', content: '❌', size: 240, label: 'Red X' },
             'siren': { type: 'text', content: '🚨', size: 240, label: 'Siren' },
             '100': { type: 'text', content: '💯', size: 240, label: '100' },
-            'circle': { type: 'circle', radius: 140, label: 'Circle' }
+            'skull': { type: 'text', content: '💀', size: 240, label: 'Skull' },
+            'clown': { type: 'text', content: '🤡', size: 240, label: 'Clown' },
+            'eyes': { type: 'text', content: '👀', size: 240, label: 'Eyes' },
+            'verified': { type: 'text', content: '✔️', size: 240, label: 'Verified Check' },
+            'crown': { type: 'text', content: '👑', size: 240, label: 'Crown' }
         };
 
         // Add Sticker Event
@@ -683,18 +711,22 @@
             selectedObj = obj;
             if (obj) {
                 const def = overlayDefs[obj.defId];
-                selectedOverlayLabel.innerText = `Selected (${def.label}) Scale`;
+                selectedOverlayLabel.innerText = `Overlay Scale (${def.label})`;
                 overlaySizeSlider.value = Math.round((obj.scale || 1.0) * 100);
                 overlaySizeVal.innerText = `${overlaySizeSlider.value}%`;
-                selectedOverlayControls.style.display = 'block';
             } else {
-                selectedOverlayControls.style.display = 'none';
+                selectedOverlayLabel.innerText = `Overlay Scale (Select an item)`;
             }
         }
 
         overlaySizeSlider.addEventListener('input', () => {
-            if (selectedObj) {
-                selectedObj.scale = parseFloat(overlaySizeSlider.value) / 100;
+            let targetObj = selectedObj;
+            if (!targetObj && activeOverlays.length > 0) {
+                targetObj = activeOverlays[activeOverlays.length - 1];
+                setSelectedOverlay(targetObj);
+            }
+            if (targetObj) {
+                targetObj.scale = parseFloat(overlaySizeSlider.value) / 100;
                 overlaySizeVal.innerText = `${overlaySizeSlider.value}%`;
                 drawThumbnail();
             }
@@ -721,6 +753,7 @@
                 
                 if (def.type === 'text' && Math.abs(mouseX - obj.x) < (def.size * currentScale)/1.5 && Math.abs(mouseY - obj.y) < (def.size * currentScale)/1.5) hit = true;
                 if (def.type === 'circle' && Math.abs(mouseX - obj.x) < (def.radius * currentScale) && Math.abs(mouseY - obj.y) < (def.radius * currentScale)) hit = true;
+                if (def.type === 'box' && Math.abs(mouseX - obj.x) < (def.size * currentScale)/2 && Math.abs(mouseY - obj.y) < (def.size * currentScale)/2) hit = true;
 
                 if (hit) {
                     isDragging = true;
@@ -766,6 +799,7 @@
                 let hit = false;
                 if (def.type === 'text' && Math.abs(mouseX - obj.x) < (def.size * currentScale)/1.5 && Math.abs(mouseY - obj.y) < (def.size * currentScale)/1.5) hit = true;
                 if (def.type === 'circle' && Math.abs(mouseX - obj.x) < (def.radius * currentScale) && Math.abs(mouseY - obj.y) < (def.radius * currentScale)) hit = true;
+                if (def.type === 'box' && Math.abs(mouseX - obj.x) < (def.size * currentScale)/2 && Math.abs(mouseY - obj.y) < (def.size * currentScale)/2) hit = true;
 
                 if (hit) {
                     if (selectedObj === obj) setSelectedOverlay(null);
@@ -822,7 +856,7 @@
 
             const topText = thumbTextTop.value.toUpperCase();
             const bottomText = thumbTextBottom.value.toUpperCase();
-            const currentFontSize = fontSizeSlider.value || 130;
+            const currentFontSize = parseInt(fontSizeSlider.value) || 130;
             
             ctx.textAlign = 'center';
             ctx.textBaseline = 'alphabetic';
@@ -838,9 +872,9 @@
             ctx.shadowOffsetY = 6;
 
             if (topText) {
-                ctx.strokeText(topText, canvas.width / 2, parseInt(currentFontSize) + 30);
+                ctx.strokeText(topText, canvas.width / 2, currentFontSize + 30);
                 ctx.shadowColor = 'transparent'; 
-                ctx.fillText(topText, canvas.width / 2, parseInt(currentFontSize) + 30);
+                ctx.fillText(topText, canvas.width / 2, currentFontSize + 30);
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; 
             }
             if (bottomText) {
@@ -866,15 +900,20 @@
                     ctx.beginPath();
                     ctx.arc(obj.x, obj.y, def.radius * currentScale, 0, Math.PI * 2);
                     ctx.stroke();
+                } else if (def.type === 'box') {
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = Math.max(8, 22 * currentScale);
+                    const bSize = def.size * currentScale;
+                    ctx.strokeRect(obj.x - bSize/2, obj.y - bSize/2, bSize, bSize);
                 }
 
-                // Draw bounding box on selected object
+                // Selection Box Highlight
                 if (obj === selectedObj) {
                     ctx.shadowColor = 'transparent';
                     ctx.strokeStyle = '#6346f6';
                     ctx.lineWidth = 3;
                     ctx.setLineDash([8, 8]);
-                    const boxSize = (def.type === 'text' ? def.size : def.radius * 2) * currentScale;
+                    const boxSize = (def.type === 'circle' ? def.radius * 2 : def.size) * currentScale;
                     ctx.strokeRect(obj.x - boxSize / 2, obj.y - boxSize / 2, boxSize, boxSize);
                     ctx.setLineDash([]);
                 }
