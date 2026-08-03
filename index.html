@@ -35,7 +35,6 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        /* Centered Viewport Layout */
         body {
             background-color: var(--bg-base);
             color: var(--text-main);
@@ -53,7 +52,6 @@
             margin: 0 auto;
         }
 
-        /* Header (GifMaker Style) */
         .header {
             text-align: center;
             margin-bottom: 2rem;
@@ -80,7 +78,6 @@
             margin-top: 0.5rem;
         }
 
-        /* Segmented Navigation Tabs */
         .tab-nav-wrapper {
             display: flex;
             justify-content: center;
@@ -114,7 +111,6 @@
             box-shadow: 0 4px 12px rgba(91, 70, 246, 0.4);
         }
 
-        /* Views */
         .view-section {
             display: none;
             width: 100%;
@@ -124,7 +120,6 @@
             display: block;
         }
 
-        /* Outer Centered Dashboard Container */
         .card-container {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -134,7 +129,6 @@
             margin: 0 auto;
         }
 
-        /* 2-Column Dashboard Grid */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 440px 1fr;
@@ -148,7 +142,6 @@
             }
         }
 
-        /* Control Stack Panels */
         .control-stack {
             display: flex;
             flex-direction: column;
@@ -172,7 +165,6 @@
             gap: 0.5rem;
         }
 
-        /* Form Elements */
         label {
             display: block;
             font-size: 0.8rem;
@@ -192,12 +184,17 @@
             transition: border-color 0.2s;
         }
 
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent-purple);
+            cursor: pointer;
+        }
+
         input:focus, select:focus {
             outline: none;
             border-color: var(--accent-purple);
         }
 
-        /* Buttons & Badges */
         .btn {
             background: var(--btn-purple);
             color: white;
@@ -226,21 +223,10 @@
             cursor: not-allowed;
         }
 
-        .btn-secondary {
-            background: #253147;
-            color: #e2e8f0;
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: #31405c;
-        }
-
         .btn-success {
             background: linear-gradient(135deg, #10b981, #059669);
         }
 
-        /* Sticker Overlay Badges */
         .overlay-badge-grid {
             display: flex;
             flex-wrap: wrap;
@@ -265,7 +251,6 @@
             border-color: var(--accent-purple);
         }
 
-        /* Canvas Workspace */
         .canvas-container {
             display: flex;
             flex-direction: column;
@@ -283,7 +268,6 @@
             cursor: crosshair;
         }
 
-        /* Right Side Emoji Quick Panel */
         .emoji-panel {
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
@@ -322,7 +306,6 @@
             font-weight: 600;
         }
 
-        /* Checkbox & Helpers */
         .checkbox-row {
             display: flex;
             align-items: center;
@@ -345,7 +328,6 @@
             margin-top: 0.4rem;
         }
 
-        /* Security Pill & Progress */
         .security-badge {
             display: inline-block;
             font-size: 0.75rem;
@@ -402,6 +384,21 @@
             text-decoration: none;
             font-weight: 700;
         }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .slider-value {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #a5b4fc;
+            min-width: 42px;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -435,7 +432,7 @@
                         </div>
 
                         <div class="panel-box">
-                            <div class="panel-title">2. Text & Style Controls</div>
+                            <div class="panel-title">2. Text & Font Controls</div>
                             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                                 <div>
                                     <label>Preset Hook</label>
@@ -457,6 +454,15 @@
                                         <input type="text" id="thumb-text-bottom" placeholder="THE TRUTH">
                                     </div>
                                 </div>
+                                
+                                <div>
+                                    <label>Font Size</label>
+                                    <div class="slider-row">
+                                        <input type="range" id="font-size-slider" min="60" max="220" value="130">
+                                        <span id="font-size-val" class="slider-value">130px</span>
+                                    </div>
+                                </div>
+
                                 <div>
                                     <label>Font Color</label>
                                     <select id="thumb-text-color">
@@ -474,7 +480,7 @@
                         </div>
 
                         <div class="panel-box">
-                            <div class="panel-title">3. Draggable Overlays (Click to Add)</div>
+                            <div class="panel-title">3. Draggable Overlays</div>
                             <div class="overlay-badge-grid">
                                 <button class="sticker-badge-btn" data-sticker="arrow">➡️ Red Arrow</button>
                                 <button class="sticker-badge-btn" data-sticker="circle">⭕ Red Circle</button>
@@ -486,7 +492,16 @@
                                 <button class="sticker-badge-btn" data-sticker="siren">🚨 Siren</button>
                                 <button class="sticker-badge-btn" data-sticker="100">💯 100</button>
                             </div>
-                            <p class="help-text">Drag items across canvas to reposition. Double-click items to remove them.</p>
+
+                            <div id="selected-overlay-controls" style="margin-top: 1rem; display: none;">
+                                <label id="selected-overlay-label">Selected Overlay Scale</label>
+                                <div class="slider-row">
+                                    <input type="range" id="overlay-size-slider" min="50" max="400" value="100">
+                                    <span id="overlay-size-val" class="slider-value">100%</span>
+                                </div>
+                            </div>
+
+                            <p class="help-text">Click/drag items on canvas to select or move them. Double-click to remove.</p>
                         </div>
 
                         <button id="download-thumb-btn" class="btn btn-success">⬇️ Download Thumbnail (JPG)</button>
@@ -607,23 +622,29 @@
         const thumbTextBottom = document.getElementById('thumb-text-bottom');
         const thumbTextColor = document.getElementById('thumb-text-color');
         const thumbBorder = document.getElementById('thumb-border');
+        const fontSizeSlider = document.getElementById('font-size-slider');
+        const fontSizeVal = document.getElementById('font-size-val');
+        const overlaySizeSlider = document.getElementById('overlay-size-slider');
+        const overlaySizeVal = document.getElementById('overlay-size-val');
+        const selectedOverlayControls = document.getElementById('selected-overlay-controls');
+        const selectedOverlayLabel = document.getElementById('selected-overlay-label');
         const downloadThumbBtn = document.getElementById('download-thumb-btn');
 
         let bgImage = null;
         let activeOverlays = [];
         let isDragging = false;
-        let dragObj = null;
+        let selectedObj = null;
 
         const overlayDefs = {
-            'arrow': { type: 'text', content: '➡️', size: 240 },
-            'shock': { type: 'text', content: '😱', size: 240 },
-            'fire': { type: 'text', content: '🔥', size: 240 },
-            'money': { type: 'text', content: '💰', size: 240 },
-            'question': { type: 'text', content: '❓', size: 240 },
-            'cross': { type: 'text', content: '❌', size: 240 },
-            'siren': { type: 'text', content: '🚨', size: 240 },
-            '100': { type: 'text', content: '💯', size: 240 },
-            'circle': { type: 'circle', radius: 140 }
+            'arrow': { type: 'text', content: '➡️', size: 240, label: 'Arrow' },
+            'shock': { type: 'text', content: '😱', size: 240, label: 'Shocked Face' },
+            'fire': { type: 'text', content: '🔥', size: 240, label: 'Fire' },
+            'money': { type: 'text', content: '💰', size: 240, label: 'Money' },
+            'question': { type: 'text', content: '❓', size: 240, label: 'Question' },
+            'cross': { type: 'text', content: '❌', size: 240, label: 'Cross' },
+            'siren': { type: 'text', content: '🚨', size: 240, label: 'Siren' },
+            '100': { type: 'text', content: '💯', size: 240, label: '100' },
+            'circle': { type: 'circle', radius: 140, label: 'Circle' }
         };
 
         // Add Sticker Event
@@ -631,12 +652,15 @@
             btn.addEventListener('click', () => {
                 const key = btn.getAttribute('data-sticker');
                 if (overlayDefs[key]) {
-                    activeOverlays.push({
+                    const newObj = {
                         id: Date.now(),
                         defId: key,
                         x: canvas.width / 2,
-                        y: canvas.height / 2
-                    });
+                        y: canvas.height / 2,
+                        scale: 1.0
+                    };
+                    activeOverlays.push(newObj);
+                    setSelectedOverlay(newObj);
                     drawThumbnail();
                 }
             });
@@ -655,42 +679,76 @@
             });
         });
 
+        function setSelectedOverlay(obj) {
+            selectedObj = obj;
+            if (obj) {
+                const def = overlayDefs[obj.defId];
+                selectedOverlayLabel.innerText = `Selected (${def.label}) Scale`;
+                overlaySizeSlider.value = Math.round((obj.scale || 1.0) * 100);
+                overlaySizeVal.innerText = `${overlaySizeSlider.value}%`;
+                selectedOverlayControls.style.display = 'block';
+            } else {
+                selectedOverlayControls.style.display = 'none';
+            }
+        }
+
+        overlaySizeSlider.addEventListener('input', () => {
+            if (selectedObj) {
+                selectedObj.scale = parseFloat(overlaySizeSlider.value) / 100;
+                overlaySizeVal.innerText = `${overlaySizeSlider.value}%`;
+                drawThumbnail();
+            }
+        });
+
+        fontSizeSlider.addEventListener('input', () => {
+            fontSizeVal.innerText = `${fontSizeSlider.value}px`;
+            drawThumbnail();
+        });
+
         // Canvas Pointer Events
         canvas.addEventListener('pointerdown', (e) => {
             const rect = canvas.getBoundingClientRect();
             const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
             const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
+            let hitFound = false;
+
             for (let i = activeOverlays.length - 1; i >= 0; i--) {
                 const obj = activeOverlays[i];
                 const def = overlayDefs[obj.defId];
+                const currentScale = obj.scale || 1.0;
                 let hit = false;
                 
-                if (def.type === 'text' && Math.abs(mouseX - obj.x) < def.size/1.5 && Math.abs(mouseY - obj.y) < def.size/1.5) hit = true;
-                if (def.type === 'circle' && Math.abs(mouseX - obj.x) < def.radius && Math.abs(mouseY - obj.y) < def.radius) hit = true;
+                if (def.type === 'text' && Math.abs(mouseX - obj.x) < (def.size * currentScale)/1.5 && Math.abs(mouseY - obj.y) < (def.size * currentScale)/1.5) hit = true;
+                if (def.type === 'circle' && Math.abs(mouseX - obj.x) < (def.radius * currentScale) && Math.abs(mouseY - obj.y) < (def.radius * currentScale)) hit = true;
 
                 if (hit) {
                     isDragging = true;
-                    dragObj = obj;
+                    setSelectedOverlay(obj);
                     activeOverlays.splice(i, 1);
                     activeOverlays.push(obj);
                     canvas.setPointerCapture(e.pointerId);
+                    hitFound = true;
                     break;
                 }
             }
+
+            if (!hitFound) {
+                setSelectedOverlay(null);
+            }
+            drawThumbnail();
         });
 
         canvas.addEventListener('pointermove', (e) => {
-            if (!isDragging || !dragObj) return;
+            if (!isDragging || !selectedObj) return;
             const rect = canvas.getBoundingClientRect();
-            dragObj.x = (e.clientX - rect.left) * (canvas.width / rect.width);
-            dragObj.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            selectedObj.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            selectedObj.y = (e.clientY - rect.top) * (canvas.height / rect.height);
             drawThumbnail();
         });
 
         const releasePointer = (e) => {
             isDragging = false;
-            dragObj = null;
             try { canvas.releasePointerCapture(e.pointerId); } catch(e){}
         };
         canvas.addEventListener('pointerup', releasePointer);
@@ -704,11 +762,13 @@
             for (let i = activeOverlays.length - 1; i >= 0; i--) {
                 const obj = activeOverlays[i];
                 const def = overlayDefs[obj.defId];
+                const currentScale = obj.scale || 1.0;
                 let hit = false;
-                if (def.type === 'text' && Math.abs(mouseX - obj.x) < def.size/1.5 && Math.abs(mouseY - obj.y) < def.size/1.5) hit = true;
-                if (def.type === 'circle' && Math.abs(mouseX - obj.x) < def.radius && Math.abs(mouseY - obj.y) < def.radius) hit = true;
+                if (def.type === 'text' && Math.abs(mouseX - obj.x) < (def.size * currentScale)/1.5 && Math.abs(mouseY - obj.y) < (def.size * currentScale)/1.5) hit = true;
+                if (def.type === 'circle' && Math.abs(mouseX - obj.x) < (def.radius * currentScale) && Math.abs(mouseY - obj.y) < (def.radius * currentScale)) hit = true;
 
                 if (hit) {
+                    if (selectedObj === obj) setSelectedOverlay(null);
                     activeOverlays.splice(i, 1);
                     drawThumbnail();
                     break;
@@ -762,13 +822,14 @@
 
             const topText = thumbTextTop.value.toUpperCase();
             const bottomText = thumbTextBottom.value.toUpperCase();
+            const currentFontSize = fontSizeSlider.value || 130;
             
             ctx.textAlign = 'center';
             ctx.textBaseline = 'alphabetic';
-            ctx.font = '900 130px Impact, sans-serif';
+            ctx.font = `900 ${currentFontSize}px Impact, sans-serif`;
             ctx.fillStyle = thumbTextColor.value;
             ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 25; 
+            ctx.lineWidth = Math.max(12, Math.round(currentFontSize / 5)); 
             ctx.lineJoin = 'round'; 
             
             ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
@@ -777,33 +838,45 @@
             ctx.shadowOffsetY = 6;
 
             if (topText) {
-                ctx.strokeText(topText, canvas.width / 2, 160);
+                ctx.strokeText(topText, canvas.width / 2, parseInt(currentFontSize) + 30);
                 ctx.shadowColor = 'transparent'; 
-                ctx.fillText(topText, canvas.width / 2, 160);
+                ctx.fillText(topText, canvas.width / 2, parseInt(currentFontSize) + 30);
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; 
             }
             if (bottomText) {
-                ctx.strokeText(bottomText, canvas.width / 2, canvas.height - 60);
+                ctx.strokeText(bottomText, canvas.width / 2, canvas.height - 50);
                 ctx.shadowColor = 'transparent';
-                ctx.fillText(bottomText, canvas.width / 2, canvas.height - 60);
+                ctx.fillText(bottomText, canvas.width / 2, canvas.height - 50);
             }
 
             activeOverlays.forEach(obj => {
                 const def = overlayDefs[obj.defId];
+                const currentScale = obj.scale || 1.0;
                 ctx.shadowColor = 'rgba(0,0,0,0.6)';
                 ctx.shadowBlur = 15;
 
                 if (def.type === 'text') {
-                    ctx.font = `${def.size}px Arial`;
+                    ctx.font = `${def.size * currentScale}px Arial`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle'; 
                     ctx.fillText(def.content, obj.x, obj.y);
                 } else if (def.type === 'circle') {
                     ctx.strokeStyle = '#ef4444';
-                    ctx.lineWidth = 22;
+                    ctx.lineWidth = Math.max(8, 22 * currentScale);
                     ctx.beginPath();
-                    ctx.arc(obj.x, obj.y, def.radius, 0, Math.PI * 2);
+                    ctx.arc(obj.x, obj.y, def.radius * currentScale, 0, Math.PI * 2);
                     ctx.stroke();
+                }
+
+                // Draw bounding box on selected object
+                if (obj === selectedObj) {
+                    ctx.shadowColor = 'transparent';
+                    ctx.strokeStyle = '#6346f6';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 8]);
+                    const boxSize = (def.type === 'text' ? def.size : def.radius * 2) * currentScale;
+                    ctx.strokeRect(obj.x - boxSize / 2, obj.y - boxSize / 2, boxSize, boxSize);
+                    ctx.setLineDash([]);
                 }
             });
             ctx.shadowColor = 'transparent'; 
@@ -816,10 +889,19 @@
         }
 
         downloadThumbBtn.addEventListener('click', () => {
+            const tempSelected = selectedObj;
+            setSelectedOverlay(null);
+            drawThumbnail();
+
             const link = document.createElement('a');
             link.download = 'cookieclip_thumbnail.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
+
+            if (tempSelected) {
+                setSelectedOverlay(tempSelected);
+                drawThumbnail();
+            }
         });
 
         drawThumbnail();
