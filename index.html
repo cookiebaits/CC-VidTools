@@ -510,4 +510,19 @@
             message.innerText = "Finalizing file...";
             const data = await ffmpeg.readFile('output.mp4');
             
-            currentObjectUrl = URL.create
+            currentObjectUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+            downloadLink.href = currentObjectUrl;
+            downloadLink.style.display = "block";
+            
+            message.innerText = "Done! Click the link above to save.";
+            progressContainer.style.display = "none";
+            convertBtn.disabled = false;
+        };
+
+        convertBtn.addEventListener('click', processVideo);
+        
+        // Start loading FFmpeg automatically
+        loadFFmpeg();
+    </script>
+</body>
+</html>
