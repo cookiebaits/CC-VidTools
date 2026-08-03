@@ -35,6 +35,7 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
+        /* Centered Viewport Layout */
         body {
             background-color: var(--bg-base);
             color: var(--text-main);
@@ -42,12 +43,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             padding: 2.5rem 1.5rem;
         }
 
         .app-container {
             width: 100%;
-            max-width: 1240px;
+            max-width: 1100px;
+            margin: 0 auto;
         }
 
         /* Header (GifMaker Style) */
@@ -62,6 +65,7 @@
             color: #ffffff;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
             letter-spacing: -0.5px;
         }
@@ -113,30 +117,32 @@
         /* Views */
         .view-section {
             display: none;
+            width: 100%;
         }
 
         .view-section.active {
             display: block;
         }
 
-        /* Outer Dashboard Container */
+        /* Outer Centered Dashboard Container */
         .card-container {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-card);
             padding: 1.75rem;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
         }
 
         /* 2-Column Dashboard Grid */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 460px 1fr;
+            grid-template-columns: 440px 1fr;
             gap: 1.75rem;
             align-items: start;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 960px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
@@ -263,7 +269,7 @@
         .canvas-container {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         canvas {
@@ -876,7 +882,6 @@
         trimStartInput.addEventListener('input', updateEstimate);
         trimEndInput.addEventListener('input', updateEstimate);
 
-        // Helper to fetch script files and turn them into same-origin Blob URLs
         const createBlobWorkerURL = async (url) => {
             const res = await fetch(url);
             const content = await res.text();
@@ -892,7 +897,6 @@
                     statusText.innerText = `Compressing: ${percent}%`;
                 });
 
-                // CORS Fix: Download UMD distribution files as same-origin Blob URLs
                 const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
                 const coreURL = await createBlobWorkerURL(`${baseURL}/ffmpeg-core.js`);
                 
