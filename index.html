@@ -238,7 +238,7 @@
         .thumb-dashboard {
             display: flex;
             gap: 2rem;
-            align-items: flex-start;
+            align-items: stretch; /* Allows sidebar to stretch to the height of the main form */
         }
 
         .thumb-main {
@@ -252,7 +252,8 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius);
             padding: 1.5rem;
-            height: fit-content;
+            display: flex;
+            flex-direction: column;
         }
 
         .emoji-sidebar h3 {
@@ -293,8 +294,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            max-height: 500px;
-            overflow-y: auto;
+            flex-grow: 1; /* Automatically expands to fill available height */
+            overflow-y: auto; /* Safeguard for extremely small screens */
             padding-right: 0.5rem;
         }
 
@@ -362,12 +363,12 @@
         </div>
 
         <div class="tab-nav">
-            <button id="tab-compressor" class="tab-btn active">🎥 Compressor</button>
-            <button id="tab-thumbnail" class="tab-btn">🖼️ Thumbnail Maker</button>
+            <button id="tab-compressor" class="tab-btn">🎥 Compressor</button>
+            <button id="tab-thumbnail" class="tab-btn active">🖼️ Thumbnail Maker</button>
         </div>
 
         <!-- VIDEO COMPRESSOR VIEW -->
-        <div id="compressor-view" class="view-section active card">
+        <div id="compressor-view" class="view-section card">
             <div style="text-align: center;">
                 <div class="security-badge">🔒 Local RAM Processing • No Cloud Uploads</div>
                 <h2 style="margin-bottom: 1.5rem;">Browser Video Compressor</h2>
@@ -414,7 +415,7 @@
         </div>
 
         <!-- THUMBNAIL MAKER VIEW -->
-        <div id="thumbnail-view" class="view-section">
+        <div id="thumbnail-view" class="view-section active">
             <div class="thumb-dashboard">
                 
                 <!-- Main Canvas & Controls -->
@@ -538,7 +539,6 @@
         </div>
     </div>
 
-    <!-- Using jsdelivr for main imports to match the core bundle and prevent unpkg CORS drops -->
     <script type="module">
         import { FFmpeg } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js';
         import { fetchFile, toBlobURL } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js';
@@ -699,6 +699,9 @@
             link.click();
         });
 
+        // Initialize Canvas drawing immediately since it's the default active tab
+        drawThumbnail();
+
 
         // ==========================================
         // VIDEO COMPRESSOR LOGIC
@@ -810,7 +813,6 @@
         trimStartInput.addEventListener('input', updateEstimate);
         trimEndInput.addEventListener('input', updateEstimate);
 
-        // --- ENHANCED & BULLETPROOF ASSET LOADER ---
         const getCachedFFmpegFile = async (url, type, mimeType) => {
             const cacheName = 'ffmpeg-engine-cache-v1';
             try {
@@ -828,7 +830,6 @@
                 }
                 
                 const blob = await response.blob();
-                // Assign explicit MIME type for secure contexts
                 const typedBlob = new Blob([blob], { type: mimeType });
                 return URL.createObjectURL(typedBlob);
                 
@@ -847,7 +848,6 @@
                     statusText.innerText = `Processing: ${percent}%`;
                 });
 
-                // Use 'umd' bundle via jsdelivr (highest compatibility with COEP/CORP and Web Workers)
                 const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
                 
                 message.innerText = "Downloading Core JS (this only happens once)...";
@@ -867,7 +867,6 @@
                 convertBtn.disabled = false;
             } catch (error) {
                 console.error("Engine Load Error:", error);
-                // Print explicit error message to user so they know what failed
                 message.innerText = `Setup Error: ${error.message}. Please refresh the page to try again.`;
                 message.style.color = 'var(--danger)';
             }
