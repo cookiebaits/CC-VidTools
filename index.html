@@ -5,26 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CookieClip Video Tools</title>
     <!-- Required for SharedArrayBuffer on GitHub Pages -->
-    <script src="coi-serviceworker.js"></script> 
+    <script src="coi-serviceworker.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #0b0f19;
-            --bg-card: #121827;
-            --bg-panel: #1a2235;
-            --bg-input: #0e131f;
-            --border-color: #26334d;
-            --border-hover: #3b4d71;
-            --text-main: #f1f5f9;
-            --text-muted: #8e9bb0;
-            --accent-purple: #6346f6;
-            --accent-purple-hover: #7357ff;
-            --btn-purple: linear-gradient(135deg, #5b46f6, #7a5af8);
+            --bg-base: #0f172a;      /* slate-900 */
+            --bg-card: #1e293b;      /* slate-800 */
+            --bg-panel: #0f172a;     /* slate-900 */
+            --bg-input: #334155;     /* slate-700 */
+            --border-color: #334155; /* slate-700 */
+            --border-hover: #475569; /* slate-600 */
+            --text-main: #f1f5f9;    /* slate-100 */
+            --text-muted: #94a3b8;   /* slate-400 */
+            --accent-purple: #4f46e5;       /* indigo-600 */
+            --accent-purple-hover: #6366f1; /* indigo-500 */
+            --btn-purple: linear-gradient(135deg, #4f46e5, #6366f1);
             --success: #10b981;
             --danger: #ef4444;
-            --radius-card: 16px;
-            --radius-panel: 12px;
-            --radius-btn: 8px;
+            --radius-card: 0.75rem; /* xl */
+            --radius-panel: 0.5rem; /* lg */
+            --radius-btn: 0.25rem; /* base */
         }
 
         * {
@@ -114,13 +116,28 @@
         }
 
         /* Views */
-        .view-section {
-            display: none;
+        .view-container {
+            position: relative;
             width: 100%;
+            /* min-height matches thumbnail view approximate height to prevent layout shifts */
+            min-height: 800px;
+        }
+
+        .view-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 0;
         }
 
         .view-section.active {
-            display: block;
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
         }
 
         /* Outer Centered Dashboard Container */
@@ -433,10 +450,12 @@
         <div class="tab-nav-wrapper">
             <div class="tab-nav">
                 <button id="tab-thumbnail" class="tab-btn active">🖼️ Thumbnail Maker</button>
+                <button id="tab-gifmaker" class="tab-btn">🎞️ Gif Maker</button>
                 <button id="tab-compressor" class="tab-btn">🎥 Video Compressor</button>
             </div>
         </div>
 
+        <div class="view-container">
         <!-- THUMBNAIL MAKER VIEW -->
         <div id="thumbnail-view" class="view-section active">
             <div class="card-container">
@@ -569,7 +588,8 @@
 
         <!-- VIDEO COMPRESSOR VIEW -->
         <div id="compressor-view" class="view-section">
-            <div class="card-container" style="max-width: 650px; margin: 0 auto;">
+            <div class="card-container" style="max-width: 1100px; margin: 0 auto;">
+                <div style="max-width: 650px; margin: 0 auto;">
                 <div style="text-align: center;">
                     <span class="security-badge">🔒 Private Offline In-Memory Processing</span>
                     <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Browser Video Compressor</h2>
@@ -610,8 +630,328 @@
 
                 <a id="download-link" class="download-link" style="display: none;" href="#" download="cookieclip_compressed.mp4">⬇️ Save Compressed Video</a>
                 <p id="message" style="text-align: center; margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;"></p>
+                </div>
             </div>
         </div>
+
+        <!-- GIF MAKER VIEW -->
+        <div id="gifmaker-view" class="view-section">
+            <div class="card-container">
+                <!-- GIF MAKER CONTENT INJECTED HERE LATER -->
+                <div id="gifmaker-root"></div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full text-left">
+
+    <!-- Controls Section -->
+    <div class="space-y-4">
+      <!-- 1. Multi-Image Upload Slots -->
+      <div class="bg-slate-900/60 p-3.5 rounded-lg border border-slate-700 space-y-3">
+        <label class="block text-sm font-semibold text-indigo-300">1. Select Images or Videos (Up to 3 Slots)</label>
+
+        <div class="grid grid-cols-3 gap-2">
+          <!-- Slot 1 -->
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Slot 1 (Main)</label>
+            <input type="file" id="mediaInput1" accept="image/*,video/mp4,video/webm,.mp4,.webm" class="hidden" />
+            <button type="button" onclick="document.getElementById('mediaInput1').click()" id="slot1Btn" class="w-full py-2 px-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-semibold truncate transition">📁 Upload 1</button>
+          </div>
+
+          <!-- Slot 2 -->
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Slot 2 (Opt)</label>
+            <input type="file" id="mediaInput2" accept="image/*,video/mp4,video/webm,.mp4,.webm" class="hidden" />
+            <button type="button" onclick="document.getElementById('mediaInput2').click()" id="slot2Btn" class="w-full py-2 px-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 rounded text-xs font-semibold truncate transition">+ Add 2</button>
+          </div>
+
+          <!-- Slot 3 -->
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Slot 3 (Opt)</label>
+            <input type="file" id="mediaInput3" accept="image/*,video/mp4,video/webm,.mp4,.webm" class="hidden" />
+            <button type="button" onclick="document.getElementById('mediaInput3').click()" id="slot3Btn" class="w-full py-2 px-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 rounded text-xs font-semibold truncate transition">+ Add 3</button>
+          </div>
+        </div>
+
+        <!-- Transition Timing Controls -->
+        <div id="transitionControls" class="space-y-2 pt-2 border-t border-slate-800">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Hold Time / Image</span>
+                <span id="holdTimeVal" class="text-indigo-300 font-bold">1.5s</span>
+              </div>
+              <input type="range" id="holdTime" min="0.5" max="5.0" step="0.25" value="1.5" class="w-full accent-indigo-500 cursor-pointer" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Transition Style</label>
+              <select id="transitionStyle" class="w-full bg-slate-700 border border-slate-600 rounded p-1.5 text-xs text-white">
+                <option value="fade">Smooth Crossfade</option>
+                <option value="cut">Instant Cut</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Square Crop & Framing Controls -->
+      <div class="bg-slate-900/60 p-3.5 rounded-lg border border-slate-700 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-indigo-300">✂️ Square Framing & Crop</span>
+          <span class="text-xs bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800 font-mono">1:1 Square</span>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-xs text-slate-400 mb-1">
+            <span>Zoom / Scale</span>
+            <span id="zoomVal">1.0x</span>
+          </div>
+          <input type="range" id="cropZoom" min="0.5" max="3" step="0.05" value="1" class="w-full accent-indigo-500 cursor-pointer" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Pan Left / Right</span>
+              <span id="panXVal">0px</span>
+            </div>
+            <input type="range" id="cropPanX" min="-200" max="200" value="0" class="w-full accent-indigo-500 cursor-pointer" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Pan Up / Down</span>
+              <span id="panYVal">0px</span>
+            </div>
+            <input type="range" id="cropPanY" min="-200" max="200" value="0" class="w-full accent-indigo-500 cursor-pointer" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Animated Stickers Section -->
+      <div class="bg-slate-900/60 p-3.5 rounded-lg border border-slate-700 space-y-3">
+        <label class="block text-sm font-semibold text-indigo-300">🎯 Animated Sticker Overlays (Drag on Canvas)</label>
+
+        <div class="flex flex-wrap gap-2">
+          <!-- Custom PNG Upload Button -->
+          <label class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition shadow">
+            🖼️ Custom PNG
+            <input type="file" id="customStickerInput" accept="image/*" class="hidden" />
+          </label>
+
+          <button type="button" onclick="addSticker('glasses_removal')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded text-xs flex items-center gap-1.5 transition">🕶️ Glasses Drop</button>
+          <button type="button" onclick="addSticker('laser_eyes')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded text-xs flex items-center gap-1.5 transition">🔴 Laser Eyes</button>
+          <button type="button" onclick="addSticker('fire')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded text-xs flex items-center gap-1.5 transition">🔥 Fire</button>
+          <button type="button" onclick="addSticker('verified')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded text-xs flex items-center gap-1.5 transition">✔️ Verified</button>
+          <button type="button" onclick="addSticker('crown')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded text-xs flex items-center gap-1.5 transition">👑 Crown</button>
+        </div>
+
+        <div id="stickerControls" class="space-y-2.5 pt-2 border-t border-slate-800 hidden">
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Sticker Scale</span>
+              <span id="stickerSizeVal">60px</span>
+            </div>
+            <input type="range" id="stickerScale" min="20" max="220" value="60" class="w-full accent-indigo-500 cursor-pointer" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Sticker Rotation</span>
+              <span id="stickerRotateVal">0°</span>
+            </div>
+            <input type="range" id="stickerRotate" min="0" max="360" value="0" class="w-full accent-indigo-500 cursor-pointer" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button type="button" id="bringToFrontBtn" class="py-1 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 rounded text-xs transition">🔝 Bring to Front</button>
+            <button type="button" id="sendToBackBtn" class="py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded text-xs transition">🔻 Send to Back</button>
+          </div>
+
+          <div class="flex justify-between gap-2 pt-1">
+            <button type="button" id="deleteStickerBtn" class="w-1/2 py-1 bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 rounded text-xs transition">Remove Selected</button>
+            <button type="button" id="clearStickersBtn" class="w-1/2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 rounded text-xs transition">Clear All</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">2. Choose Animation Mode</label>
+        <select id="animationSelect" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-indigo-500">
+          <option value="none">▶️ Normal Playback (No Preset Effect)</option>
+          <option value="dramatic">⚡ Dramatic Zoom (Speed Lines & Impact)</option>
+          <option value="squish">🫨 Jelly Squish (Elastic Bounce & Stretch)</option>
+          <option value="disco">🪩 Neon Disco (Light Beams & Beat Pulse)</option>
+          <option value="explosion">💥 Explosion (Boom Flash & Debris)</option>
+          <option value="glitch">📟 VHS Glitch (RGB Split & Scanlines)</option>
+          <option value="float">🎈 Float & Hover (Gentle Wave Motion)</option>
+          <option value="dvd">📺 DVD Bounce (Classic Edge Bounce)</option>
+          <option value="heartbeat">💓 Heartbeat (Lub-Dub Pulse)</option>
+          <option value="colorchange">🌈 Color Shift (Spectrum Cycle)</option>
+          <option value="triggered">😤 TRIGGERED (Shake + Red Tint)</option>
+          <option value="party">🎉 Party Strobe (Rainbow Pulse)</option>
+          <option value="spin">🌀 360 Spin Loop</option>
+        </select>
+      </div>
+
+      <!-- Animation Motion Speed Control -->
+      <div>
+        <div class="flex justify-between text-sm font-medium mb-1">
+          <span>3. Animation Speed</span>
+          <span id="speedVal" class="text-indigo-400 font-bold">1.0x</span>
+        </div>
+        <input type="range" id="animSpeed" min="0.05" max="2.0" step="0.05" value="1.0" class="w-full accent-indigo-500 cursor-pointer" />
+      </div>
+
+      <!-- Meme Text Customization Section -->
+      <div class="bg-slate-900/60 p-3.5 rounded-lg border border-slate-700 space-y-3">
+        <label class="block text-sm font-semibold text-indigo-300">💬 Text Overlay & Typography</label>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Text Mode</label>
+          <select id="textLayout" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white focus:ring-2 focus:ring-indigo-500">
+            <option value="dual">Dual Text (Top & Bottom Meme Style)</option>
+            <option value="center">Single Text (Center Only)</option>
+            <option value="scroll">Scrolling Text (Marquee)</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <div id="topTextContainer">
+            <label id="topTextLabel" class="block text-xs font-medium text-slate-400 mb-1">Top Text</label>
+            <input type="text" id="topText" placeholder="e.g. DP SECURITY" value="DP SECURITY" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 text-sm" />
+          </div>
+
+          <div id="bottomTextContainer">
+            <label class="block text-xs font-medium text-slate-400 mb-1">Bottom Text (Optional)</label>
+            <input type="text" id="bottomText" placeholder="e.g. PROTECTING WHAT MATTERS" value="PROTECTING WHAT MATTERS" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 text-sm" />
+          </div>
+
+          <!-- Scrolling Speed & Direction Controls (Visible in Scroll Mode) -->
+          <div id="scrollControlsContainer" class="hidden pt-2 border-t border-slate-800">
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Scroll Speed & Direction</span>
+              <span id="scrollSpeedVal" class="text-indigo-300 font-bold">Left 1.0x</span>
+            </div>
+            <input type="range" id="scrollSpeed" min="-3.0" max="3.0" step="0.2" value="1.0" class="w-full accent-indigo-500 cursor-pointer" />
+            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+              <span>◄ Right-to-Left</span>
+              <span>Off</span>
+              <span>Left-to-Right ►</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Font Family</label>
+            <select id="fontSelect" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white focus:ring-2 focus:ring-indigo-500">
+              <option value="Impact, sans-serif">Impact (Classic Meme)</option>
+              <option value="'Arial Black', sans-serif">Arial Black (Twitch Bold)</option>
+              <option value="'Courier New', monospace">Courier New (Cyber/Retro)</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet MS (Clean)</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Text Font Size</span>
+              <span id="fontSizeVal">48px</span>
+            </div>
+            <input type="range" id="fontSize" min="12" max="150" value="48" class="w-full accent-indigo-500 cursor-pointer" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Twitch < 1MB GIF Compression Settings -->
+      <div class="bg-indigo-950/40 p-3.5 rounded-lg border border-indigo-800/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-indigo-300">💜 Twitch & File Size Optimization</span>
+          <span class="text-[10px] bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800 font-bold">Target &lt; 1 MB</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Resolution</label>
+            <select id="exportRes" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
+              <option value="28">28x28 (Twitch Emote Small)</option>
+              <option value="56">56x56 (Twitch Emote Med)</option>
+              <option value="112">112x112 (Twitch Emote Large)</option>
+              <option value="256">256x256 (Twitch Badge)</option>
+              <option value="320">320x320 (Balanced)</option>
+              <option value="360" selected>360x360 (High Res)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Frame Count</label>
+            <select id="exportFrames" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
+              <option value="15">15 Frames (Smaller Size)</option>
+              <option value="20">20 Frames (Recommended)</option>
+              <option value="30" selected>30 Frames (Smoothest)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Quality Sampling</label>
+            <select id="exportQuality" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
+              <option value="10">Low Size (Sample 10)</option>
+              <option value="5">Balanced (Sample 5)</option>
+              <option value="2" selected>Best Quality (Sample 2)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Borders & Watermarking Section -->
+      <div class="bg-slate-900/60 p-3.5 rounded-lg border border-slate-700 space-y-3">
+        <label class="block text-sm font-semibold text-indigo-300">🖼️ Border Frame & Watermark</label>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Border Style</label>
+          <select id="borderSelect" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white focus:ring-2 focus:ring-indigo-500">
+            <option value="none">None (Full Bleed)</option>
+            <option value="white">Classic White Frame</option>
+            <option value="black">Classic Black Frame</option>
+            <option value="neon">Neon Cyberpunk</option>
+            <option value="polaroid">Polaroid Style</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Watermark Tag</label>
+            <input type="text" id="watermarkInput" placeholder="e.g. @cookiebaits" value="@cookiebaits" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Watermark Size</span>
+              <span id="wmSizeVal">13px</span>
+            </div>
+            <input type="range" id="watermarkSize" min="8" max="36" value="13" class="w-full accent-indigo-500 cursor-pointer" />
+          </div>
+        </div>
+      </div>
+
+      <button id="exportBtn" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+        <span>💾 Export Square GIF</span>
+      </button>
+
+      <div id="status" class="text-xs text-center font-medium min-h-[24px]"></div>
+    </div>
+
+    <!-- Preview Canvas Section -->
+    <div class="flex flex-col items-center justify-center bg-slate-950 rounded-lg border border-slate-800 p-4">
+      <div class="relative aspect-square w-full max-w-[360px] flex items-center justify-center cursor-crosshair">
+        <canvas id="animCanvas" width="400" height="400" class="w-full h-full rounded border border-slate-700 bg-slate-900 object-contain"></canvas>
+      </div>
+      <span class="text-xs text-slate-500 mt-2">Live Preview (Click & drag stickers on canvas)</span>
+    </div>
+
+  </div>
+            </div>
+        </div>
+
+        </div> <!-- end view-container -->
 
     </div>
 
@@ -624,22 +964,34 @@
         // ==========================================
         const tabCompressor = document.getElementById('tab-compressor');
         const tabThumbnail = document.getElementById('tab-thumbnail');
+        const tabGifmaker = document.getElementById('tab-gifmaker');
+
         const viewCompressor = document.getElementById('compressor-view');
         const viewThumbnail = document.getElementById('thumbnail-view');
+        const viewGifmaker = document.getElementById('gifmaker-view');
+
+        const tabs = [tabThumbnail, tabCompressor, tabGifmaker];
+        const views = [viewThumbnail, viewCompressor, viewGifmaker];
+
+        function switchTab(activeTabBtn, activeView) {
+            tabs.forEach(btn => btn.classList.remove('active'));
+            views.forEach(view => view.classList.remove('active'));
+
+            activeTabBtn.classList.add('active');
+            activeView.classList.add('active');
+        }
 
         tabThumbnail.addEventListener('click', () => {
-            tabThumbnail.classList.add('active');
-            tabCompressor.classList.remove('active');
-            viewThumbnail.classList.add('active');
-            viewCompressor.classList.remove('active');
+            switchTab(tabThumbnail, viewThumbnail);
             drawThumbnail();
         });
 
         tabCompressor.addEventListener('click', () => {
-            tabCompressor.classList.add('active');
-            tabThumbnail.classList.remove('active');
-            viewCompressor.classList.add('active');
-            viewThumbnail.classList.remove('active');
+            switchTab(tabCompressor, viewCompressor);
+        });
+
+        tabGifmaker.addEventListener('click', () => {
+            switchTab(tabGifmaker, viewGifmaker);
         });
 
         // ==========================================
@@ -1017,9 +1369,27 @@
         trimStartInput.addEventListener('input', updateEstimate);
         trimEndInput.addEventListener('input', updateEstimate);
 
+        async function cachedToBlobURL(url, mimeType) {
+            const cache = await caches.open('ffmpeg-cache-v1');
+            let response = await cache.match(url);
+
+            if (!response) {
+                response = await fetch(url);
+                if (response.ok) {
+                    await cache.put(url, response.clone());
+                } else {
+                    throw new Error(`Failed to fetch ${url}`);
+                }
+            }
+
+            const blob = await response.blob();
+            const typedBlob = new Blob([blob], { type: mimeType });
+            return URL.createObjectURL(typedBlob);
+        }
+
         const loadFFmpeg = async () => {
             try {
-                message.innerText = "Downloading processing engine...";
+                message.innerText = "Loading processing engine...";
 
                 ffmpeg.on('progress', ({ progress }) => {
                     const percent = Math.min(Math.max(Math.round(progress * 100), 0), 100);
@@ -1030,10 +1400,10 @@
                 const coreBaseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
                 const ffmpegBaseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm';
 
-                // toBlobURL converts external scripts into same-origin blob URLs to prevent GitHub Pages Worker CORS errors
-                const coreURL = await toBlobURL(`${coreBaseURL}/ffmpeg-core.js`, 'text/javascript');
-                const wasmURL = await toBlobURL(`${coreBaseURL}/ffmpeg-core.wasm`, 'application/wasm');
-                const classWorkerURL = await toBlobURL(`${ffmpegBaseURL}/worker.js`, 'text/javascript');
+                // cachedToBlobURL prevents redundant downloading by checking CacheStorage first
+                const coreURL = await cachedToBlobURL(`${coreBaseURL}/ffmpeg-core.js`, 'text/javascript');
+                const wasmURL = await cachedToBlobURL(`${coreBaseURL}/ffmpeg-core.wasm`, 'application/wasm');
+                const classWorkerURL = await cachedToBlobURL(`${ffmpegBaseURL}/worker.js`, 'text/javascript');
 
                 await ffmpeg.load({
                     coreURL,
@@ -1083,6 +1453,1091 @@
         });
 
         loadFFmpeg();
+        // ==========================================
+        // GIF MAKER ENGINE
+        // ==========================================
+        (function() {
+    // Elements & State
+    const customStickerInput = document.getElementById('customStickerInput');
+    const animationSelect = document.getElementById('animationSelect');
+    const animSpeed = document.getElementById('animSpeed');
+    const speedVal = document.getElementById('speedVal');
+    const holdTime = document.getElementById('holdTime');
+    const holdTimeVal = document.getElementById('holdTimeVal');
+    const transitionStyle = document.getElementById('transitionStyle');
+
+    const textLayout = document.getElementById('textLayout');
+    const topTextContainer = document.getElementById('topTextContainer');
+    const bottomTextContainer = document.getElementById('bottomTextContainer');
+    const topTextLabel = document.getElementById('topTextLabel');
+    const topText = document.getElementById('topText');
+    const bottomText = document.getElementById('bottomText');
+    const scrollControlsContainer = document.getElementById('scrollControlsContainer');
+    const scrollSpeed = document.getElementById('scrollSpeed');
+    const scrollSpeedVal = document.getElementById('scrollSpeedVal');
+
+    const fontSelect = document.getElementById('fontSelect');
+    const fontSize = document.getElementById('fontSize');
+    const fontSizeVal = document.getElementById('fontSizeVal');
+    const borderSelect = document.getElementById('borderSelect');
+    const watermarkInput = document.getElementById('watermarkInput');
+    const watermarkSize = document.getElementById('watermarkSize');
+    const wmSizeVal = document.getElementById('wmSizeVal');
+
+    // Export compression elements
+    const exportRes = document.getElementById('exportRes');
+    const exportFrames = document.getElementById('exportFrames');
+    const exportQuality = document.getElementById('exportQuality');
+
+    const exportBtn = document.getElementById('exportBtn');
+    const status = document.getElementById('status');
+    const canvas = document.getElementById('animCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Sticker elements
+    const stickerControls = document.getElementById('stickerControls');
+    const stickerScale = document.getElementById('stickerScale');
+    const stickerSizeVal = document.getElementById('stickerSizeVal');
+    const stickerRotate = document.getElementById('stickerRotate');
+    const stickerRotateVal = document.getElementById('stickerRotateVal');
+    const bringToFrontBtn = document.getElementById('bringToFrontBtn');
+    const sendToBackBtn = document.getElementById('sendToBackBtn');
+    const deleteStickerBtn = document.getElementById('deleteStickerBtn');
+    const clearStickersBtn = document.getElementById('clearStickersBtn');
+
+    // Crop sliders
+    const cropZoom = document.getElementById('cropZoom');
+    const cropPanX = document.getElementById('cropPanX');
+    const cropPanY = document.getElementById('cropPanY');
+
+    // --- Multi-Media Slot System ---
+    const mediaSlots = [null, null, null];
+    const slotBtns = [
+      document.getElementById('slot1Btn'),
+      document.getElementById('slot2Btn'),
+      document.getElementById('slot3Btn')
+    ];
+
+    let animTimeSeconds = 0;
+    let lastTimeMs = performance.now();
+    let animReq = null;
+
+    // Stickers state
+    let stickers = [];
+    let selectedStickerIndex = -1;
+    let isDraggingSticker = false;
+
+    // Draw initial placeholder
+    function drawPlaceholder() {
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Upload image or video to start', canvas.width / 2, canvas.height / 2);
+    }
+    drawPlaceholder();
+
+    // Attach File Listeners to Slots 1, 2, 3
+    [1, 2, 3].forEach(slotNum => {
+      const inputEl = document.getElementById(`mediaInput${slotNum}`);
+      const btnEl = slotBtns[slotNum - 1];
+
+      inputEl.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const isVid = file.type.startsWith('video/') || file.name.endsWith('.mp4') || file.name.endsWith('.webm');
+
+        if (isVid) {
+          const videoEl = document.createElement('video');
+          videoEl.muted = true;
+          videoEl.loop = true;
+          videoEl.playsInline = true;
+          videoEl.src = URL.createObjectURL(file);
+          videoEl.onloadedmetadata = () => {
+            videoEl.play();
+            mediaSlots[slotNum - 1] = { type: 'video', element: videoEl, name: file.name };
+            btnEl.textContent = `🎥 Slot ${slotNum}`;
+            btnEl.className = "w-full py-2 px-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold truncate transition";
+            startAnimationLoop();
+          };
+        } else {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const imgEl = new Image();
+            imgEl.onload = () => {
+              mediaSlots[slotNum - 1] = { type: 'image', element: imgEl, name: file.name };
+              btnEl.textContent = `🖼️ Slot ${slotNum}`;
+              btnEl.className = "w-full py-2 px-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold truncate transition";
+              startAnimationLoop();
+            };
+            imgEl.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    });
+
+    // Custom PNG Sticker Upload Handler
+    customStickerInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const customImg = new Image();
+        customImg.onload = () => {
+          stickers.push({
+            type: 'custom',
+            img: customImg,
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 80,
+            rotation: 0
+          });
+          selectedStickerIndex = stickers.length - 1;
+          updateStickerControls();
+          startAnimationLoop();
+        };
+        customImg.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+      customStickerInput.value = '';
+    });
+
+    // Text Layout Toggle
+    textLayout.addEventListener('change', () => {
+      if (textLayout.value === 'center') {
+        bottomTextContainer.classList.add('hidden');
+        scrollControlsContainer.classList.add('hidden');
+        topTextLabel.textContent = 'Center Text';
+      } else if (textLayout.value === 'scroll') {
+        bottomTextContainer.classList.add('hidden');
+        scrollControlsContainer.classList.remove('hidden');
+        topTextLabel.textContent = 'Marquee Scrolling Text';
+      } else {
+        bottomTextContainer.classList.remove('hidden');
+        scrollControlsContainer.classList.add('hidden');
+        topTextLabel.textContent = 'Top Text';
+      }
+      startAnimationLoop();
+    });
+
+    scrollSpeed.addEventListener('input', () => {
+      const spd = parseFloat(scrollSpeed.value);
+      if (spd === 0) {
+        scrollSpeedVal.textContent = 'Paused';
+      } else if (spd > 0) {
+        scrollSpeedVal.textContent = `Left ${Math.abs(spd).toFixed(1)}x`;
+      } else {
+        scrollSpeedVal.textContent = `Right ${Math.abs(spd).toFixed(1)}x`;
+      }
+      startAnimationLoop();
+    });
+
+    // Slider & Controls Listeners
+    holdTime.addEventListener('input', () => {
+      holdTimeVal.textContent = `${holdTime.value}s`;
+      startAnimationLoop();
+    });
+
+    transitionStyle.addEventListener('change', () => { startAnimationLoop(); });
+
+    cropZoom.addEventListener('input', () => {
+      document.getElementById('zoomVal').textContent = `${cropZoom.value}x`;
+      startAnimationLoop();
+    });
+    cropPanX.addEventListener('input', () => {
+      document.getElementById('panXVal').textContent = `${cropPanX.value}px`;
+      startAnimationLoop();
+    });
+    cropPanY.addEventListener('input', () => {
+      document.getElementById('panYVal').textContent = `${cropPanY.value}px`;
+      startAnimationLoop();
+    });
+
+    fontSize.addEventListener('input', () => {
+      fontSizeVal.textContent = `${fontSize.value}px`;
+      startAnimationLoop();
+    });
+
+    watermarkSize.addEventListener('input', () => {
+      wmSizeVal.textContent = `${watermarkSize.value}px`;
+      startAnimationLoop();
+    });
+
+    animSpeed.addEventListener('input', () => {
+      const mult = parseFloat(animSpeed.value);
+      speedVal.textContent = `${mult.toFixed(2)}x`;
+      mediaSlots.forEach(slot => {
+        if (slot && slot.type === 'video') slot.element.playbackRate = mult;
+      });
+    });
+
+    // --- Sticker System ---
+    window.addSticker = function(type) {
+      stickers.push({
+        type: type,
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        size: 60,
+        rotation: 0
+      });
+      selectedStickerIndex = stickers.length - 1;
+      updateStickerControls();
+      startAnimationLoop();
+    };
+
+    function updateStickerControls() {
+      if (selectedStickerIndex >= 0 && selectedStickerIndex < stickers.length) {
+        stickerControls.classList.remove('hidden');
+        stickerScale.value = stickers[selectedStickerIndex].size;
+        stickerSizeVal.textContent = `${stickers[selectedStickerIndex].size}px`;
+        stickerRotate.value = stickers[selectedStickerIndex].rotation || 0;
+        stickerRotateVal.textContent = `${stickers[selectedStickerIndex].rotation || 0}°`;
+      } else {
+        stickerControls.classList.add('hidden');
+      }
+    }
+
+    stickerScale.addEventListener('input', () => {
+      if (selectedStickerIndex >= 0 && selectedStickerIndex < stickers.length) {
+        stickers[selectedStickerIndex].size = parseInt(stickerScale.value);
+        stickerSizeVal.textContent = `${stickerScale.value}px`;
+        startAnimationLoop();
+      }
+    });
+
+    stickerRotate.addEventListener('input', () => {
+      if (selectedStickerIndex >= 0 && selectedStickerIndex < stickers.length) {
+        stickers[selectedStickerIndex].rotation = parseInt(stickerRotate.value);
+        stickerRotateVal.textContent = `${stickerRotate.value}°`;
+        startAnimationLoop();
+      }
+    });
+
+    bringToFrontBtn.addEventListener('click', () => {
+      if (selectedStickerIndex >= 0 && selectedStickerIndex < stickers.length) {
+        const [st] = stickers.splice(selectedStickerIndex, 1);
+        stickers.push(st);
+        selectedStickerIndex = stickers.length - 1;
+        updateStickerControls();
+        startAnimationLoop();
+      }
+    });
+
+    sendToBackBtn.addEventListener('click', () => {
+      if (selectedStickerIndex >= 0 && selectedStickerIndex < stickers.length) {
+        const [st] = stickers.splice(selectedStickerIndex, 1);
+        stickers.unshift(st);
+        selectedStickerIndex = 0;
+        updateStickerControls();
+        startAnimationLoop();
+      }
+    });
+
+    deleteStickerBtn.addEventListener('click', () => {
+      if (selectedStickerIndex >= 0 && selectedStickerIndex < stickers.length) {
+        stickers.splice(selectedStickerIndex, 1);
+        selectedStickerIndex = stickers.length - 1;
+        updateStickerControls();
+        startAnimationLoop();
+      }
+    });
+
+    clearStickersBtn.addEventListener('click', () => {
+      stickers = [];
+      selectedStickerIndex = -1;
+      updateStickerControls();
+      startAnimationLoop();
+    });
+
+    // Canvas Interaction (Drag Stickers)
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    function handlePointerDown(e) {
+      const coords = getCanvasCoords(e);
+      let hitFound = false;
+
+      for (let i = stickers.length - 1; i >= 0; i--) {
+        const st = stickers[i];
+        const dist = Math.hypot(coords.x - st.x, coords.y - st.y);
+        if (dist <= st.size / 1.1) {
+          selectedStickerIndex = i;
+          isDraggingSticker = true;
+          hitFound = true;
+          updateStickerControls();
+          break;
+        }
+      }
+
+      if (!hitFound) {
+        selectedStickerIndex = -1;
+        updateStickerControls();
+      }
+      startAnimationLoop();
+    }
+
+    function handlePointerMove(e) {
+      if (isDraggingSticker && selectedStickerIndex >= 0) {
+        const coords = getCanvasCoords(e);
+        stickers[selectedStickerIndex].x = coords.x;
+        stickers[selectedStickerIndex].y = coords.y;
+        startAnimationLoop();
+      }
+    }
+
+    function handlePointerUp() {
+      isDraggingSticker = false;
+    }
+
+    canvas.addEventListener('mousedown', handlePointerDown);
+    canvas.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerUp);
+
+    canvas.addEventListener('touchstart', handlePointerDown, { passive: true });
+    canvas.addEventListener('touchmove', handlePointerMove, { passive: true });
+    window.addEventListener('touchend', handlePointerUp);
+
+    // Draw individual animated sticker
+    function drawSticker(targetCtx, st, isSelected, scaleFactor = 1, t = 0) {
+      targetCtx.save();
+
+      const animBounceY = Math.sin((t % 1.0) * Math.PI * 2 * 2) * (5 * scaleFactor);
+      const animPulseScale = 1 + Math.sin((t % 1.0) * Math.PI * 2 * 2) * 0.08;
+      const animWiggleRot = Math.sin((t % 1.0) * Math.PI * 2 * 2) * 0.08;
+
+      let drawYOffset = 0;
+      let drawExtraRotation = animWiggleRot;
+      let drawExtraScale = 1;
+
+      if (st.type === 'glasses_removal') {
+        const cycle = (t % 1.0);
+        if (cycle < 0.35) {
+          const progress = cycle / 0.35;
+          drawYOffset = (-120 * scaleFactor) * (1 - Math.sin(progress * Math.PI / 2));
+        } else if (cycle >= 0.35 && cycle < 0.70) {
+          drawYOffset = 0;
+        } else {
+          const progress = (cycle - 0.70) / 0.30;
+          drawYOffset = (-120 * scaleFactor) * Math.sin(progress * Math.PI / 2);
+        }
+      } else if (st.type === 'fire') {
+        drawExtraScale = animPulseScale;
+        drawYOffset = animBounceY;
+      } else if (st.type === 'crown' || st.type === 'custom') {
+        drawYOffset = animBounceY;
+      } else if (st.type === 'laser_eyes') {
+        drawExtraScale = 1 + Math.sin((t % 1.0) * Math.PI * 2 * 3) * 0.06;
+      }
+
+      const x = st.x * scaleFactor;
+      const y = (st.y * scaleFactor) + drawYOffset;
+      const size = st.size * scaleFactor * drawExtraScale;
+      const rotationRad = (((st.rotation || 0) * Math.PI) / 180) + drawExtraRotation;
+
+      targetCtx.translate(x, y);
+      targetCtx.rotate(rotationRad);
+
+      if (st.type === 'custom' && st.img) {
+        const aspect = st.img.width / st.img.height;
+        let drawW = size;
+        let drawH = size;
+        if (aspect > 1) {
+          drawH = size / aspect;
+        } else {
+          drawW = size * aspect;
+        }
+        targetCtx.drawImage(st.img, -drawW / 2, -drawH / 2, drawW, drawH);
+
+      } else if (st.type === 'laser_eyes') {
+        const laserGlow = 16 + Math.sin((t % 1.0) * Math.PI * 2 * 3) * 10;
+        targetCtx.shadowColor = '#ff0000';
+        targetCtx.shadowBlur = laserGlow;
+        targetCtx.fillStyle = '#ff2222';
+
+        targetCtx.beginPath();
+        targetCtx.arc(-size * 0.3, 0, size * 0.28, 0, Math.PI * 2);
+        targetCtx.fill();
+
+        targetCtx.beginPath();
+        targetCtx.arc(size * 0.3, 0, size * 0.28, 0, Math.PI * 2);
+        targetCtx.fill();
+
+        targetCtx.shadowBlur = 0;
+        targetCtx.fillStyle = '#ffffff';
+        targetCtx.beginPath();
+        targetCtx.arc(-size * 0.3, 0, size * 0.12, 0, Math.PI * 2);
+        targetCtx.arc(size * 0.3, 0, size * 0.12, 0, Math.PI * 2);
+        targetCtx.fill();
+
+      } else {
+        let emoji = '🕶️';
+        if (st.type === 'glasses_removal') emoji = '😎';
+        if (st.type === 'fire') emoji = '🔥';
+        if (st.type === 'verified') emoji = '✔️';
+        if (st.type === 'crown') emoji = '👑';
+
+        targetCtx.font = `${size}px sans-serif`;
+        targetCtx.textAlign = 'center';
+        targetCtx.textBaseline = 'middle';
+
+        if (st.type === 'verified') {
+          targetCtx.fillStyle = '#1d9bf0';
+          targetCtx.beginPath();
+          targetCtx.arc(0, 0, size * 0.45, 0, Math.PI * 2);
+          targetCtx.fill();
+          targetCtx.fillStyle = '#ffffff';
+          targetCtx.font = `900 ${size * 0.55}px sans-serif`;
+          targetCtx.fillText('✓', 0, 2);
+        } else {
+          targetCtx.fillText(emoji, 0, 0);
+        }
+      }
+
+      if (isSelected && targetCtx === ctx) {
+        targetCtx.strokeStyle = '#6366f1';
+        targetCtx.lineWidth = 2;
+        targetCtx.setLineDash([4, 4]);
+        targetCtx.beginPath();
+        targetCtx.arc(0, 0, size * 0.65, 0, Math.PI * 2);
+        targetCtx.stroke();
+      }
+
+      targetCtx.restore();
+    }
+
+    // Helper: Draw Single Media Source into Context
+    function drawMediaSource(targetCtx, mediaObj, w, h, opacity = 1.0) {
+      if (!mediaObj) return;
+      targetCtx.save();
+      targetCtx.globalAlpha = opacity;
+
+      const mediaSource = mediaObj.element;
+      const mediaW = mediaObj.type === 'video' ? mediaSource.videoWidth : mediaSource.width;
+      const mediaH = mediaObj.type === 'video' ? mediaSource.videoHeight : mediaSource.height;
+
+      const zoom = parseFloat(cropZoom.value);
+      const panX = parseFloat(cropPanX.value);
+      const panY = parseFloat(cropPanY.value);
+
+      const aspect = mediaW / mediaH;
+      let baseW, baseH;
+
+      if (aspect > 1) {
+        baseH = h * zoom;
+        baseW = h * aspect * zoom;
+      } else {
+        baseW = w * zoom;
+        baseH = (w / aspect) * zoom;
+      }
+
+      let imgX = (w - baseW) / 2 + panX;
+      let imgY = (h - baseH) / 2 + panY;
+
+      targetCtx.drawImage(mediaSource, imgX, imgY, baseW, baseH);
+      targetCtx.restore();
+    }
+
+    // Deterministic Time-Stepped Pseudo Random Generator for TRIGGERED & EXPLOSION mode
+    function getShakeOffset(t) {
+      const step = Math.floor((t % 1.0) * 24);
+      const rx = Math.sin(step * 12.9898 + 78.233) * 43758.5453;
+      const ry = Math.sin(step * 39.3461 + 11.135) * 43758.5453;
+      const shakeX = ((rx - Math.floor(rx)) - 0.5) * 16;
+      const shakeY = ((ry - Math.floor(ry)) - 0.5) * 16;
+      return { shakeX, shakeY };
+    }
+
+    // Helper: Draw Comic Speed Lines for Dramatic Zoom Mode
+    function drawSpeedLines(targetCtx, w, h, t, lineOpacity = 1.0) {
+      if (lineOpacity <= 0.01) return;
+      targetCtx.save();
+      const numLines = 28;
+      targetCtx.strokeStyle = `rgba(255, 255, 255, ${0.45 * lineOpacity})`;
+      targetCtx.lineWidth = Math.max(1.5, w * 0.008);
+      const cx = w / 2;
+      const cy = h / 2;
+      const outerR = Math.hypot(w, h);
+      const innerR = Math.min(w, h) * (0.28 + Math.sin((t % 1.0) * Math.PI * 2 * 2) * 0.04);
+
+      for (let i = 0; i < numLines; i++) {
+        const angle = (i / numLines) * Math.PI * 2 + (Math.sin(i * 3 + Math.floor((t % 1.0) * 20)) * 0.05);
+        const x1 = cx + Math.cos(angle) * innerR;
+        const y1 = cy + Math.sin(angle) * innerR;
+        const x2 = cx + Math.cos(angle) * outerR;
+        const y2 = cy + Math.sin(angle) * outerR;
+
+        targetCtx.beginPath();
+        targetCtx.moveTo(x1, y1);
+        targetCtx.lineTo(x2, y2);
+        targetCtx.stroke();
+      }
+      targetCtx.restore();
+    }
+
+    // Helper: Draw Rotating Neon Disco Light Beams
+    function drawDiscoLights(targetCtx, w, h, t) {
+      targetCtx.save();
+      const numBeams = 8;
+      const angleStep = (Math.PI * 2) / numBeams;
+      const rot = (t % 1.0) * Math.PI * 2;
+      targetCtx.lineWidth = Math.max(4, w * 0.04);
+
+      for (let i = 0; i < numBeams; i++) {
+        const a = rot + i * angleStep;
+        const colorHue = (((t % 1.0) * 360) + i * 45) % 360;
+        targetCtx.strokeStyle = `hsla(${colorHue}, 100%, 65%, 0.35)`;
+        targetCtx.beginPath();
+        targetCtx.moveTo(w / 2, h / 2);
+        targetCtx.lineTo(w / 2 + Math.cos(a) * w, h / 2 + Math.sin(a) * h);
+        targetCtx.stroke();
+      }
+      targetCtx.restore();
+    }
+
+    // Helper: Draw Fiery Explosion & Shockwave Overlay
+    function drawExplosionEffect(targetCtx, w, h, t) {
+      targetCtx.save();
+      const cycle = t % 1.0;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      // Initial Flash
+      if (cycle < 0.2) {
+        const flashAlpha = 1.0 - (cycle / 0.2);
+        targetCtx.fillStyle = `rgba(255, 240, 200, ${flashAlpha * 0.8})`;
+        targetCtx.fillRect(0, 0, w, h);
+      }
+
+      // Expanding Shockwave Ring
+      const ringRadius = w * cycle * 0.95;
+      const ringAlpha = Math.max(0, 1.0 - cycle);
+      targetCtx.lineWidth = Math.max(2, 18 * (1.0 - cycle));
+      targetCtx.strokeStyle = `rgba(255, 120, 0, ${ringAlpha})`;
+      targetCtx.beginPath();
+      targetCtx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+      targetCtx.stroke();
+
+      // Debris & Fire Particles
+      const numSparks = 20;
+      for (let i = 0; i < numSparks; i++) {
+        const angle = (i / numSparks) * Math.PI * 2 + (i * 1.3);
+        const dist = (w * 0.65) * cycle;
+        const px = cx + Math.cos(angle) * dist;
+        const py = cy + Math.sin(angle) * dist;
+        const sparkSize = Math.max(2, 10 * (1.0 - cycle));
+
+        targetCtx.fillStyle = (i % 2 === 0) ? `rgba(255, 60, 0, ${ringAlpha})` : `rgba(255, 220, 0, ${ringAlpha})`;
+        targetCtx.beginPath();
+        targetCtx.arc(px, py, sparkSize, 0, Math.PI * 2);
+        targetCtx.fill();
+      }
+
+      targetCtx.restore();
+    }
+
+    // Helper: Draw VHS Glitch Scanlines & Slice Offset Overlay
+    function drawVHSGlitch(targetCtx, activeSlots, currentIdx, nextIdx, slotFraction, style, w, h, t) {
+      targetCtx.save();
+      const bandCount = 12;
+      const bandHeight = h / bandCount;
+      const glitchStep = Math.floor((t % 1.0) * 20);
+
+      for (let i = 0; i < bandCount; i++) {
+        const isGlitchedBand = ((i + glitchStep) % 4 === 0);
+        const shiftX = isGlitchedBand ? Math.sin(i * 7.1 + glitchStep) * 16 : 0;
+
+        targetCtx.save();
+        targetCtx.beginPath();
+        targetCtx.rect(0, i * bandHeight, w, bandHeight);
+        targetCtx.clip();
+        targetCtx.translate(shiftX, 0);
+
+        const fadeWindow = 0.3;
+        if (activeSlots.length > 1 && style === 'fade' && slotFraction > (1.0 - fadeWindow)) {
+          const blend = (slotFraction - (1.0 - fadeWindow)) / fadeWindow;
+          drawMediaSource(targetCtx, activeSlots[currentIdx], w, h, 1.0 - blend);
+          drawMediaSource(targetCtx, activeSlots[nextIdx], w, h, blend);
+        } else {
+          drawMediaSource(targetCtx, activeSlots[currentIdx], w, h, 1.0);
+        }
+
+        // RGB Split Overlay on shifted bands
+        if (isGlitchedBand) {
+          targetCtx.globalCompositeOperation = 'screen';
+          targetCtx.fillStyle = 'rgba(255, 0, 80, 0.25)';
+          targetCtx.fillRect(shiftX * 0.5, i * bandHeight, w, bandHeight);
+          targetCtx.fillStyle = 'rgba(0, 240, 255, 0.25)';
+          targetCtx.fillRect(-shiftX * 0.5, i * bandHeight, w, bandHeight);
+        }
+        targetCtx.restore();
+      }
+
+      // Scanlines overlay
+      targetCtx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+      for (let y = 0; y < h; y += 4) {
+        targetCtx.fillRect(0, y, w, 2);
+      }
+
+      targetCtx.restore();
+    }
+
+    // Main Renderer
+    function renderFrame(t, targetCtx = ctx, w = canvas.width, h = canvas.height) {
+      targetCtx.clearRect(0, 0, w, h);
+      targetCtx.save();
+
+      const activeSlots = mediaSlots.filter(s => s !== null);
+
+      if (activeSlots.length === 0) {
+        drawPlaceholder();
+        targetCtx.restore();
+        return;
+      }
+
+      const mode = animationSelect.value;
+      const modeLayout = textLayout.value;
+      const topVal = topText.value.toUpperCase();
+      const bottomVal = bottomText.value.toUpperCase();
+      const fontChoice = fontSelect.value;
+      const fSize = parseInt(fontSize.value);
+      const borderStyle = borderSelect.value;
+      const watermarkText = watermarkInput.value;
+      const wmFontSize = parseInt(watermarkSize.value);
+
+      // Multi-Image Timing Calculations
+      const hTime = parseFloat(holdTime.value);
+      const style = transitionStyle.value;
+      const totalLoopTime = activeSlots.length * hTime;
+
+      // Current loop position
+      const loopTime = (t * (1.0 / totalLoopTime)) % 1.0;
+      const progressInLoop = loopTime * activeSlots.length;
+      const currentIdx = Math.floor(progressInLoop) % activeSlots.length;
+      const nextIdx = (currentIdx + 1) % activeSlots.length;
+      const slotFraction = progressInLoop - Math.floor(progressInLoop);
+
+      let dramaticLineOpacity = 0.0;
+
+      // Handle Effect Matrix Wrap
+      targetCtx.save();
+
+      if (mode === 'dvd') {
+        const normT = t % 1.0;
+        const scaleVal = 0.45;
+        const boxW = w * scaleVal;
+        const boxH = h * scaleVal;
+        const maxX = w - boxW;
+        const maxY = h - boxH;
+
+        const ux = normT * 2.0;
+        const posX = ux < 1.0 ? ux * maxX : (2.0 - ux) * maxX;
+
+        const uy = normT * 4.0;
+        const cycleY = Math.floor(uy);
+        const fracY = uy - cycleY;
+        const posY = (cycleY % 2 === 0) ? fracY * maxY : (1.0 - fracY) * maxY;
+
+        const bounceCount = Math.floor(ux) + Math.floor(uy);
+        const dvdHue = (bounceCount * 120) % 360;
+
+        targetCtx.fillStyle = '#090d16';
+        targetCtx.fillRect(0, 0, w, h);
+
+        targetCtx.translate(posX, posY);
+        targetCtx.scale(scaleVal, scaleVal);
+        targetCtx.filter = `hue-rotate(${dvdHue}deg) saturate(1.8)`;
+
+      } else if (mode === 'squish') {
+        const scaleFactor = w / canvas.width;
+        const cycleRad = (t % 1.0) * Math.PI * 2 * 2;
+        const squishX = 1 + Math.sin(cycleRad) * 0.18;
+        const squishY = 1 - Math.sin(cycleRad) * 0.18;
+        const bounceY = -Math.abs(Math.sin(cycleRad)) * (14 * scaleFactor);
+        targetCtx.translate(w / 2, h / 2 + bounceY);
+        targetCtx.scale(squishX, squishY);
+        targetCtx.translate(-w / 2, -h / 2);
+
+      } else if (mode === 'disco') {
+        const discoHue = ((t % 1.0) * 360) % 360;
+        const discoBeat = 1 + Math.sin((t % 1.0) * Math.PI * 2 * 2) * 0.08;
+        targetCtx.filter = `hue-rotate(${discoHue}deg) saturate(2.0) brightness(1.1)`;
+        targetCtx.translate(w / 2, h / 2);
+        targetCtx.scale(discoBeat, discoBeat);
+        targetCtx.translate(-w / 2, -h / 2);
+
+      } else if (mode === 'float') {
+        const scaleFactor = w / canvas.width;
+        const cycleRad = (t % 1.0) * Math.PI * 2;
+        const floatY = Math.sin(cycleRad) * (14 * scaleFactor);
+        const floatRot = Math.sin(cycleRad) * 0.06;
+        targetCtx.translate(w / 2, h / 2 + floatY);
+        targetCtx.rotate(floatRot);
+        targetCtx.translate(-w / 2, -h / 2);
+
+      } else if (mode === 'explosion') {
+        const { shakeX, shakeY } = getShakeOffset(t * 1.5);
+        targetCtx.translate(shakeX * 0.6, shakeY * 0.6);
+
+      } else if (mode === 'dramatic') {
+        const cycle = t % 1.0;
+        let zoomPulse = 1.0;
+
+        if (cycle < 0.30) {
+          const p = cycle / 0.30;
+          const u = 0.5 * (1 - Math.cos(p * Math.PI));
+          zoomPulse = 1.0 + u * 0.45;
+          dramaticLineOpacity = u;
+        } else if (cycle < 0.55) {
+          const p = (cycle - 0.30) / 0.25;
+          const vibrate = Math.sin(p * Math.PI * 6) * 0.02;
+          zoomPulse = 1.45 + vibrate;
+          dramaticLineOpacity = 1.0 - (p * 0.3);
+        } else if (cycle < 0.90) {
+          const p = (cycle - 0.55) / 0.35;
+          const u = 0.5 * (1 + Math.cos(p * Math.PI));
+          zoomPulse = 1.0 + u * 0.45;
+          dramaticLineOpacity = u * 0.7;
+        } else {
+          zoomPulse = 1.0;
+          dramaticLineOpacity = 0.0;
+        }
+
+        targetCtx.translate(w / 2, h / 2);
+        targetCtx.scale(zoomPulse, zoomPulse);
+        targetCtx.translate(-w / 2, -h / 2);
+
+      } else if (mode === 'heartbeat') {
+        let beatScale = 1;
+        const cycle = t % 1.0;
+        if (cycle < 0.15) {
+          beatScale = 1 + Math.sin((cycle / 0.15) * Math.PI) * 0.14;
+        } else if (cycle > 0.22 && cycle < 0.35) {
+          beatScale = 1 + Math.sin(((cycle - 0.22) / 0.13) * Math.PI) * 0.09;
+        }
+        targetCtx.translate(w / 2, h / 2);
+        targetCtx.scale(beatScale, beatScale);
+        targetCtx.translate(-w / 2, -h / 2);
+
+      } else if (mode === 'colorchange') {
+        const hue = (t * 360) % 360;
+        targetCtx.filter = `hue-rotate(${hue}deg) saturate(1.4)`;
+
+      } else if (mode === 'triggered') {
+        const { shakeX, shakeY } = getShakeOffset(t);
+        targetCtx.translate(shakeX, shakeY);
+
+      } else if (mode === 'party') {
+        const hue = (t * 360) % 360;
+        const scale = 1 + Math.sin(t * 2 * Math.PI) * 0.06;
+        targetCtx.filter = `hue-rotate(${hue}deg) brightness(1.2)`;
+        targetCtx.translate(w / 2, h / 2);
+        targetCtx.scale(scale, scale);
+        targetCtx.translate(-w / 2, -h / 2);
+
+      } else if (mode === 'spin') {
+        const angle = (t * 360) * (Math.PI / 180);
+        targetCtx.translate(w / 2, h / 2);
+        targetCtx.rotate(angle);
+        targetCtx.translate(-w / 2, -h / 2);
+      }
+
+      // Draw Media Slides / Custom Modes
+      if (mode === 'glitch') {
+        drawVHSGlitch(targetCtx, activeSlots, currentIdx, nextIdx, slotFraction, style, w, h, t);
+      } else {
+        const fadeWindow = 0.3;
+        if (activeSlots.length > 1 && style === 'fade' && slotFraction > (1.0 - fadeWindow)) {
+          const blend = (slotFraction - (1.0 - fadeWindow)) / fadeWindow;
+          drawMediaSource(targetCtx, activeSlots[currentIdx], w, h, 1.0 - blend);
+          drawMediaSource(targetCtx, activeSlots[nextIdx], w, h, blend);
+        } else {
+          drawMediaSource(targetCtx, activeSlots[currentIdx], w, h, 1.0);
+        }
+      }
+
+      if (mode === 'triggered') {
+        targetCtx.fillStyle = 'rgba(255, 0, 0, 0.25)';
+        targetCtx.fillRect(-20, -20, w + 40, h + 40);
+      } else if (mode === 'explosion') {
+        drawExplosionEffect(targetCtx, w, h, t);
+      } else if (mode === 'dramatic') {
+        drawSpeedLines(targetCtx, w, h, t, dramaticLineOpacity);
+      } else if (mode === 'disco') {
+        drawDiscoLights(targetCtx, w, h, t);
+      }
+
+      targetCtx.restore();
+
+      // --- Draw Animated Stickers ---
+      const scaleFactor = w / canvas.width;
+      stickers.forEach((st, idx) => {
+        drawSticker(targetCtx, st, idx === selectedStickerIndex, scaleFactor, t);
+      });
+
+      // --- Border Styles Overlay ---
+      if (borderStyle !== 'none') {
+        targetCtx.save();
+        if (borderStyle === 'white') {
+          targetCtx.lineWidth = 24 * scaleFactor;
+          targetCtx.strokeStyle = '#ffffff';
+          targetCtx.strokeRect(0, 0, w, h);
+        } else if (borderStyle === 'black') {
+          targetCtx.lineWidth = 24 * scaleFactor;
+          targetCtx.strokeStyle = '#000000';
+          targetCtx.strokeRect(0, 0, w, h);
+        } else if (borderStyle === 'neon') {
+          targetCtx.lineWidth = 12 * scaleFactor;
+          targetCtx.strokeStyle = '#00f0ff';
+          targetCtx.strokeRect(6, 6, w - 12, h - 12);
+          targetCtx.lineWidth = 6 * scaleFactor;
+          targetCtx.strokeStyle = '#ff007f';
+          targetCtx.strokeRect(12, 12, w - 24, h - 24);
+        } else if (borderStyle === 'polaroid') {
+          targetCtx.fillStyle = '#f8fafc';
+          targetCtx.fillRect(0, 0, w, 16 * scaleFactor);
+          targetCtx.fillRect(0, 0, 16 * scaleFactor, h);
+          targetCtx.fillRect(w - 16 * scaleFactor, 0, 16 * scaleFactor, h);
+          targetCtx.fillRect(0, h - 60 * scaleFactor, w, 60 * scaleFactor);
+        }
+        targetCtx.restore();
+      }
+
+      // --- Watermark Overlay ---
+      if (watermarkText) {
+        targetCtx.save();
+        const scaledWmSize = wmFontSize * scaleFactor;
+        targetCtx.font = `700 ${scaledWmSize}px sans-serif`;
+        targetCtx.textAlign = 'right';
+
+        const metrics = targetCtx.measureText(watermarkText);
+        const textWidth = metrics.width;
+        const wmX = w - ((borderStyle !== 'none' ? 24 : 12) * scaleFactor);
+        const wmY = h - ((borderStyle === 'polaroid' ? 20 : (borderStyle !== 'none' ? 24 : 12)) * scaleFactor);
+
+        targetCtx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+        targetCtx.beginPath();
+        targetCtx.roundRect(wmX - textWidth - (10 * scaleFactor), wmY - scaledWmSize, textWidth + (14 * scaleFactor), scaledWmSize + (8 * scaleFactor), 6 * scaleFactor);
+        targetCtx.fill();
+
+        targetCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        targetCtx.fillText(watermarkText, wmX - (3 * scaleFactor), wmY);
+        targetCtx.restore();
+      }
+
+      // --- Meme Text Overlay (With Marquee Scrolling Feature) ---
+      const fontScaledSize = fSize * scaleFactor;
+      targetCtx.save();
+      targetCtx.fillStyle = '#ffffff';
+      targetCtx.strokeStyle = '#000000';
+
+      const outlineWidth = w <= 56
+        ? Math.max(0.5, fontScaledSize * 0.08)
+        : Math.max(1.5, fontScaledSize * 0.12);
+      targetCtx.lineWidth = outlineWidth;
+
+      targetCtx.font = `900 ${fontScaledSize}px ${fontChoice}`;
+
+      if (modeLayout === 'scroll') {
+        const marqueeText = topVal || 'MARQUEE SCROLLING TEXT';
+        const textWidth = targetCtx.measureText(marqueeText).width;
+        const speedMult = parseFloat(scrollSpeed.value);
+
+        // Continuous scrolling offset across canvas width
+        const totalSpan = w + textWidth;
+        const normTime = t % 1.0;
+        let xPos = 0;
+
+        if (speedMult >= 0) {
+          xPos = w - ((normTime * speedMult * totalSpan) % totalSpan);
+          if (xPos < -textWidth) xPos += totalSpan;
+        } else {
+          xPos = -textWidth + ((normTime * Math.abs(speedMult) * totalSpan) % totalSpan);
+          if (xPos > w) xPos -= totalSpan;
+        }
+
+        const scrollY = (h / 2) + (fontScaledSize / 3);
+        targetCtx.textAlign = 'left';
+        targetCtx.strokeText(marqueeText, xPos, scrollY);
+        targetCtx.fillText(marqueeText, xPos, scrollY);
+
+      } else if (modeLayout === 'center') {
+        targetCtx.textAlign = 'center';
+        if (topVal) {
+          const centerY = (h / 2) + (fontScaledSize / 3);
+          if (mode === 'triggered') {
+            targetCtx.fillStyle = 'rgba(220, 38, 38, 0.9)';
+            targetCtx.fillRect(0, centerY - fontScaledSize, w, fontScaledSize + (10 * scaleFactor));
+            targetCtx.fillStyle = '#ffffff';
+            targetCtx.fillText(topVal, w / 2, centerY);
+          } else {
+            targetCtx.strokeText(topVal, w / 2, centerY);
+            targetCtx.fillText(topVal, w / 2, centerY);
+          }
+        }
+      } else {
+        targetCtx.textAlign = 'center';
+        if (topVal) {
+          const topY = borderStyle !== 'none'
+            ? fontScaledSize + (12 * scaleFactor)
+            : fontScaledSize + (4 * scaleFactor);
+          if (mode === 'triggered') {
+            targetCtx.fillStyle = 'rgba(220, 38, 38, 0.9)';
+            targetCtx.fillRect(0, topY - fontScaledSize, w, fontScaledSize + (10 * scaleFactor));
+            targetCtx.fillStyle = '#ffffff';
+            targetCtx.fillText(topVal, w / 2, topY);
+          } else {
+            targetCtx.strokeText(topVal, w / 2, topY);
+            targetCtx.fillText(topVal, w / 2, topY);
+          }
+        }
+
+        if (bottomVal) {
+          const bottomY = borderStyle === 'polaroid'
+            ? h - (35 * scaleFactor)
+            : h - (8 * scaleFactor);
+          if (mode === 'triggered' && !topVal) {
+            targetCtx.fillStyle = 'rgba(220, 38, 38, 0.9)';
+            targetCtx.fillRect(0, bottomY - fontScaledSize, w, fontScaledSize + (10 * scaleFactor));
+            targetCtx.fillStyle = '#ffffff';
+            targetCtx.fillText(bottomVal, w / 2, bottomY);
+          } else {
+            targetCtx.strokeText(bottomVal, w / 2, bottomY);
+            targetCtx.fillText(bottomVal, w / 2, bottomY);
+          }
+        }
+      }
+
+      targetCtx.restore();
+    }
+
+    // Live Delta-Time Animation Loop (1.0s = 1 cycle at 1.0x speed)
+    function startAnimationLoop() {
+      if (animReq) cancelAnimationFrame(animReq);
+      lastTimeMs = performance.now();
+
+      function loop(now) {
+        const deltaSec = Math.min((now - lastTimeMs) / 1000, 0.1);
+        lastTimeMs = now;
+
+        const speedMultiplier = parseFloat(animSpeed.value);
+        animTimeSeconds += deltaSec * speedMultiplier;
+
+        renderFrame(animTimeSeconds);
+        animReq = requestAnimationFrame(loop);
+      }
+      animReq = requestAnimationFrame(loop);
+    }
+
+    animationSelect.addEventListener('change', () => { startAnimationLoop(); });
+    topText.addEventListener('input', () => { startAnimationLoop(); });
+    bottomText.addEventListener('input', () => { startAnimationLoop(); });
+    fontSelect.addEventListener('change', () => { startAnimationLoop(); });
+    borderSelect.addEventListener('change', () => { startAnimationLoop(); });
+    watermarkInput.addEventListener('input', () => { startAnimationLoop(); });
+
+    // Utility: Convert Data URL to Blob
+    function dataURLtoBlob(dataurl) {
+      let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+          bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+      while(n--){
+          u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], {type:mime});
+    }
+
+    // Export GIF Action with Exact 1:1 Live Preview Match
+    exportBtn.addEventListener('click', async () => {
+      const activeSlots = mediaSlots.filter(s => s !== null);
+      if (activeSlots.length === 0) {
+        status.className = "text-xs text-center font-medium min-h-[24px] text-red-400";
+        status.textContent = '❌ Upload at least one image or video first!';
+        return;
+      }
+
+      status.className = "text-xs text-center font-medium min-h-[24px] text-indigo-300";
+      status.textContent = '⏳ Processing frames & compiling GIF...';
+
+      const speedMultiplier = parseFloat(animSpeed.value);
+      const outDim = parseInt(exportRes.value);
+      const totalFrames = parseInt(exportFrames.value);
+      const sampleIntervalVal = parseInt(exportQuality.value);
+
+      const gifInterval = 0.05; // 20 FPS
+      const frames = [];
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = outDim;
+      offscreenCanvas.height = outDim;
+      const offCtx = offscreenCanvas.getContext('2d');
+
+      for (let i = 0; i < totalFrames; i++) {
+        // Sample exact frame time matching live delta loop: (i / totalFrames) * 1.0 * speedMultiplier
+        const frameAnimTime = (i / totalFrames) * speedMultiplier;
+
+        for (let slot of activeSlots) {
+          if (slot.type === 'video') {
+            const videoDuration = slot.element.duration || 3;
+            slot.element.currentTime = frameAnimTime % videoDuration;
+            await new Promise(resolve => {
+              const onSeek = () => {
+                slot.element.removeEventListener('seeked', onSeek);
+                resolve();
+              };
+              slot.element.addEventListener('seeked', onSeek);
+              setTimeout(resolve, 60);
+            });
+          }
+        }
+
+        renderFrame(frameAnimTime, offCtx, outDim, outDim);
+        frames.push(offscreenCanvas.toDataURL('image/png'));
+      }
+
+      gifshot.createGIF({
+        images: frames,
+        gifWidth: outDim,
+        gifHeight: outDim,
+        interval: gifInterval,
+        sampleInterval: sampleIntervalVal,
+        numWorkers: 2
+      }, function (obj) {
+        if (!obj.error) {
+          const animatedImage = obj.image;
+          const blob = dataURLtoBlob(animatedImage);
+          const sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
+
+          const a = document.createElement('a');
+          a.href = animatedImage;
+          a.download = `square-meme-${animationSelect.value}.gif`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          if (parseFloat(sizeMB) <= 1.0) {
+            status.className = "text-xs text-center font-medium min-h-[24px] text-emerald-400";
+            status.textContent = `✅ Downloaded! Size: ${sizeMB} MB (Twitch Compliant < 1 MB)`;
+          } else {
+            status.className = "text-xs text-center font-medium min-h-[24px] text-amber-400";
+            status.textContent = `⚠️ Downloaded! Size: ${sizeMB} MB (Over 1 MB limit for Twitch - try 112x112 or 15 frames)`;
+          }
+        } else {
+          status.className = "text-xs text-center font-medium min-h-[24px] text-red-400";
+          status.textContent = '❌ Failed to generate GIF.';
+        }
+      });
+    });
+        })();
     </script>
 </body>
 </html>
