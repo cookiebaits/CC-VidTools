@@ -1,6 +1,6 @@
 # 🎨 Cookiebaits' Viral YouTube Thumbnail Maker Pro
 
-**[👉 CLICK HERE TO USE THE APP LIVE 👈](https://cookiebaits.github.io/CCvidcompressthumbnail](https://cookiebaits.github.io/CC-VidTools/)**
+**[👉 CLICK HERE TO USE THE APP LIVE 👈](https://cookiebaits.github.io/CC-VidTools/)**
 
 ---
 
