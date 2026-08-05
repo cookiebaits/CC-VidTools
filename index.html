@@ -524,7 +524,10 @@
                         <div class="panel-box">
                             <div class="panel-title">3. Draggable Overlays (Click to Add)</div>
                             <div class="overlay-badge-grid">
-                                <button class="sticker-badge-btn" data-sticker="arrow">➡️ Red Arrow</button>
+                                <button class="sticker-badge-btn" data-sticker="arrow_up">⬆️ Red Arrow Up</button>
+                                <button class="sticker-badge-btn" data-sticker="arrow_down">⬇️ Red Arrow Down</button>
+                                <button class="sticker-badge-btn" data-sticker="arrow_left">⬅️ Red Arrow Left</button>
+                                <button class="sticker-badge-btn" data-sticker="arrow_right">➡️ Red Arrow Right</button>
                                 <button class="sticker-badge-btn" data-sticker="arrow_curved">↪️ Curved Arrow</button>
                                 <button class="sticker-badge-btn" data-sticker="circle">⭕ Red Circle</button>
                                 <button class="sticker-badge-btn" data-sticker="box">🟥 Red Box</button>
@@ -609,7 +612,7 @@
                 </div>
 
                 <div class="panel-box" style="margin-top: 1rem;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
                         <div>
                             <label>Trim Start (Sec)</label>
                             <input type="number" id="trim-start" value="0" min="0" step="0.1">
@@ -617,6 +620,15 @@
                         <div>
                             <label>Trim End (Sec)</label>
                             <input type="number" id="trim-end" value="0" min="0" step="0.1">
+                        </div>
+                        <div>
+                            <label>Resolution</label>
+                            <select id="video-res">
+                                <option value="1080">1080p/i</option>
+                                <option value="720">720p</option>
+                                <option value="480">480p</option>
+                                <option value="original">Original</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -1018,8 +1030,14 @@
         let isDragging = false;
         let selectedObj = null;
 
+        let textOffsets = { top: { x: null, y: null }, bottom: { x: null, y: null } };
+        let draggingText = null;
+
         const overlayDefs = {
-            'arrow': { type: 'text', content: '➡️', size: 240, label: 'Red Arrow' },
+            'arrow_up': { type: 'text', content: '⬆️', size: 240, label: 'Red Arrow Up' },
+            'arrow_down': { type: 'text', content: '⬇️', size: 240, label: 'Red Arrow Down' },
+            'arrow_left': { type: 'text', content: '⬅️', size: 240, label: 'Red Arrow Left' },
+            'arrow_right': { type: 'text', content: '➡️', size: 240, label: 'Red Arrow Right' },
             'arrow_curved': { type: 'text', content: '↪️', size: 240, label: 'Curved Arrow' },
             'circle': { type: 'circle', radius: 140, label: 'Red Circle' },
             'box': { type: 'box', size: 240, label: 'Red Box' },
@@ -1106,6 +1124,39 @@
             const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
             const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
+            const currentFontSize = parseInt(fontSizeSlider.value) || 130;
+            ctx.font = `900 ${currentFontSize}px Impact, sans-serif`;
+
+            // Check Top Text
+            if (thumbTextTop.value) {
+                const topText = thumbTextTop.value.toUpperCase();
+                const metrics = ctx.measureText(topText);
+                const width = metrics.width;
+                const topX = textOffsets.top.x !== null ? textOffsets.top.x : canvas.width / 2;
+                const topY = textOffsets.top.y !== null ? textOffsets.top.y : currentFontSize + 30;
+
+                if (Math.abs(mouseX - topX) < width / 2 && Math.abs(mouseY - topY + currentFontSize / 3) < currentFontSize / 1.5) {
+                    draggingText = 'top';
+                    canvas.setPointerCapture(e.pointerId);
+                    return;
+                }
+            }
+
+            // Check Bottom Text
+            if (thumbTextBottom.value) {
+                const bottomText = thumbTextBottom.value.toUpperCase();
+                const metrics = ctx.measureText(bottomText);
+                const width = metrics.width;
+                const bottomX = textOffsets.bottom.x !== null ? textOffsets.bottom.x : canvas.width / 2;
+                const bottomY = textOffsets.bottom.y !== null ? textOffsets.bottom.y : canvas.height - 50;
+
+                if (Math.abs(mouseX - bottomX) < width / 2 && Math.abs(mouseY - bottomY + currentFontSize / 3) < currentFontSize / 1.5) {
+                    draggingText = 'bottom';
+                    canvas.setPointerCapture(e.pointerId);
+                    return;
+                }
+            }
+
             let hitFound = false;
 
             for (let i = activeOverlays.length - 1; i >= 0; i--) {
@@ -1136,15 +1187,26 @@
         });
 
         canvas.addEventListener('pointermove', (e) => {
-            if (!isDragging || !selectedObj) return;
             const rect = canvas.getBoundingClientRect();
-            selectedObj.x = (e.clientX - rect.left) * (canvas.width / rect.width);
-            selectedObj.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+            if (draggingText) {
+                textOffsets[draggingText].x = mouseX;
+                textOffsets[draggingText].y = mouseY;
+                drawThumbnail();
+                return;
+            }
+
+            if (!isDragging || !selectedObj) return;
+            selectedObj.x = mouseX;
+            selectedObj.y = mouseY;
             drawThumbnail();
         });
 
         const releasePointer = (e) => {
             isDragging = false;
+            draggingText = null;
             try { canvas.releasePointerCapture(e.pointerId); } catch(e){}
         };
         canvas.addEventListener('pointerup', releasePointer);
@@ -1238,15 +1300,21 @@
             ctx.shadowOffsetY = 6;
 
             if (topText) {
-                ctx.strokeText(topText, canvas.width / 2, currentFontSize + 30);
+                if (textOffsets.top.x === null) textOffsets.top.x = canvas.width / 2;
+                if (textOffsets.top.y === null) textOffsets.top.y = currentFontSize + 30;
+
+                ctx.strokeText(topText, textOffsets.top.x, textOffsets.top.y);
                 ctx.shadowColor = 'transparent'; 
-                ctx.fillText(topText, canvas.width / 2, currentFontSize + 30);
+                ctx.fillText(topText, textOffsets.top.x, textOffsets.top.y);
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; 
             }
             if (bottomText) {
-                ctx.strokeText(bottomText, canvas.width / 2, canvas.height - 50);
+                if (textOffsets.bottom.x === null) textOffsets.bottom.x = canvas.width / 2;
+                if (textOffsets.bottom.y === null) textOffsets.bottom.y = canvas.height - 50;
+
+                ctx.strokeText(bottomText, textOffsets.bottom.x, textOffsets.bottom.y);
                 ctx.shadowColor = 'transparent';
-                ctx.fillText(bottomText, canvas.width / 2, canvas.height - 50);
+                ctx.fillText(bottomText, textOffsets.bottom.x, textOffsets.bottom.y);
             }
 
             activeOverlays.forEach(obj => {
@@ -1369,14 +1437,39 @@
         trimStartInput.addEventListener('input', updateEstimate);
         trimEndInput.addEventListener('input', updateEstimate);
 
-        async function cachedToBlobURL(url, mimeType) {
+        async function cachedToBlobURL(url, mimeType, onProgress) {
             const cache = await caches.open('ffmpeg-cache-v1');
             let response = await cache.match(url);
 
             if (!response) {
                 response = await fetch(url);
                 if (response.ok) {
-                    await cache.put(url, response.clone());
+                    const clonedResponse = response.clone();
+                    const reader = response.body.getReader();
+                    const contentLength = +response.headers.get('Content-Length');
+                    let receivedLength = 0;
+                    let chunks = [];
+
+                    while (true) {
+                        const {done, value} = await reader.read();
+                        if (done) break;
+                        chunks.push(value);
+                        receivedLength += value.length;
+                        if (onProgress && contentLength) {
+                            onProgress(receivedLength / contentLength);
+                        }
+                    }
+
+                    const chunksAll = new Uint8Array(receivedLength);
+                    let position = 0;
+                    for(let chunk of chunks) {
+                        chunksAll.set(chunk, position);
+                        position += chunk.length;
+                    }
+
+                    const blob = new Blob([chunksAll], { type: mimeType });
+                    await cache.put(url, new Response(blob));
+                    return URL.createObjectURL(blob);
                 } else {
                     throw new Error(`Failed to fetch ${url}`);
                 }
@@ -1390,6 +1483,13 @@
         const loadFFmpeg = async () => {
             try {
                 message.innerText = "Loading processing engine...";
+                progressContainer.style.display = "block";
+
+                const onProgress = (filename) => (progress) => {
+                    const percent = Math.min(Math.max(Math.round(progress * 100), 0), 100);
+                    progressBar.value = percent;
+                    statusText.innerText = `Downloading Engine (${filename}): ${percent}%`;
+                };
 
                 ffmpeg.on('progress', ({ progress }) => {
                     const percent = Math.min(Math.max(Math.round(progress * 100), 0), 100);
@@ -1401,9 +1501,9 @@
                 const ffmpegBaseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm';
 
                 // cachedToBlobURL prevents redundant downloading by checking CacheStorage first
-                const coreURL = await cachedToBlobURL(`${coreBaseURL}/ffmpeg-core.js`, 'text/javascript');
-                const wasmURL = await cachedToBlobURL(`${coreBaseURL}/ffmpeg-core.wasm`, 'application/wasm');
-                const classWorkerURL = await cachedToBlobURL(`${ffmpegBaseURL}/worker.js`, 'text/javascript');
+                const coreURL = await cachedToBlobURL(`${coreBaseURL}/ffmpeg-core.js`, 'text/javascript', onProgress('ffmpeg-core.js'));
+                const wasmURL = await cachedToBlobURL(`${coreBaseURL}/ffmpeg-core.wasm`, 'application/wasm', onProgress('ffmpeg-core.wasm'));
+                const classWorkerURL = await cachedToBlobURL(`${ffmpegBaseURL}/worker.js`, 'text/javascript', onProgress('worker.js'));
 
                 await ffmpeg.load({
                     coreURL,
@@ -1411,6 +1511,7 @@
                     classWorkerURL
                 });
 
+                progressContainer.style.display = "none";
                 convertBtn.innerText = "Compress & Trim Video";
                 convertBtn.disabled = false;
                 message.innerText = "";
@@ -1436,6 +1537,12 @@
             const args = ['-i', 'input.mp4'];
             if (trimStartInput.value > 0) args.push('-ss', String(trimStartInput.value));
             if (duration > 0) args.push('-t', String(duration));
+
+            const resSelect = document.getElementById('video-res').value;
+            if (resSelect !== 'original') {
+                args.push('-vf', `scale=-2:${resSelect}`);
+            }
+
             args.push('-c:v', 'libx264', '-crf', '23', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', 'output.mp4');
 
             try {
@@ -1526,6 +1633,8 @@
     let stickers = [];
     let selectedStickerIndex = -1;
     let isDraggingSticker = false;
+    let gifTextOffsets = { top: {x: null, y: null}, bottom: {x: null, y: null}, center: {x: null, y: null} };
+    let draggingGifText = null;
 
     // Draw initial placeholder
     function drawPlaceholder() {
@@ -1768,6 +1877,37 @@
     function handlePointerDown(e) {
       const coords = getCanvasCoords(e);
       let hitFound = false;
+      const scaleFactor = canvas.width / canvas.width;
+      const fontScaledSize = parseInt(fontSize.value) * scaleFactor;
+      ctx.font = `900 ${fontScaledSize}px ${fontSelect.value}`;
+
+      if (textLayout.value === 'center' || textLayout.value === 'dual') {
+          const topVal = topText.value.toUpperCase();
+          if (topVal) {
+              const textWidth = ctx.measureText(topVal).width;
+              let x = gifTextOffsets.top.x !== null ? gifTextOffsets.top.x : canvas.width / 2;
+              let y = gifTextOffsets.top.y !== null ? gifTextOffsets.top.y : (textLayout.value === 'center' ? canvas.height / 2 + fontScaledSize/3 : fontScaledSize + 12 * scaleFactor);
+
+              if (Math.abs(coords.x - x) < textWidth / 2 && Math.abs(coords.y - y + fontScaledSize / 3) < fontScaledSize / 1.5) {
+                  draggingGifText = 'top';
+                  return;
+              }
+          }
+      }
+
+      if (textLayout.value === 'dual') {
+          const bottomVal = bottomText.value.toUpperCase();
+          if (bottomVal) {
+              const textWidth = ctx.measureText(bottomVal).width;
+              let x = gifTextOffsets.bottom.x !== null ? gifTextOffsets.bottom.x : canvas.width / 2;
+              let y = gifTextOffsets.bottom.y !== null ? gifTextOffsets.bottom.y : canvas.height - 8 * scaleFactor;
+
+              if (Math.abs(coords.x - x) < textWidth / 2 && Math.abs(coords.y - y + fontScaledSize / 3) < fontScaledSize / 1.5) {
+                  draggingGifText = 'bottom';
+                  return;
+              }
+          }
+      }
 
       for (let i = stickers.length - 1; i >= 0; i--) {
         const st = stickers[i];
@@ -1789,6 +1929,13 @@
     }
 
     function handlePointerMove(e) {
+      if (draggingGifText) {
+          const coords = getCanvasCoords(e);
+          gifTextOffsets[draggingGifText].x = coords.x;
+          gifTextOffsets[draggingGifText].y = coords.y;
+          startAnimationLoop();
+          return;
+      }
       if (isDraggingSticker && selectedStickerIndex >= 0) {
         const coords = getCanvasCoords(e);
         stickers[selectedStickerIndex].x = coords.x;
@@ -1799,6 +1946,7 @@
 
     function handlePointerUp() {
       isDraggingSticker = false;
+      draggingGifText = null;
     }
 
     canvas.addEventListener('mousedown', handlePointerDown);
@@ -2375,46 +2523,49 @@
       } else if (modeLayout === 'center') {
         targetCtx.textAlign = 'center';
         if (topVal) {
-          const centerY = (h / 2) + (fontScaledSize / 3);
+          let drawX = gifTextOffsets.top.x !== null ? gifTextOffsets.top.x * scaleFactor : w / 2;
+          let drawY = gifTextOffsets.top.y !== null ? gifTextOffsets.top.y * scaleFactor : (h / 2) + (fontScaledSize / 3);
           if (mode === 'triggered') {
             targetCtx.fillStyle = 'rgba(220, 38, 38, 0.9)';
-            targetCtx.fillRect(0, centerY - fontScaledSize, w, fontScaledSize + (10 * scaleFactor));
+            targetCtx.fillRect(0, drawY - fontScaledSize, w, fontScaledSize + (10 * scaleFactor));
             targetCtx.fillStyle = '#ffffff';
-            targetCtx.fillText(topVal, w / 2, centerY);
+            targetCtx.fillText(topVal, drawX, drawY);
           } else {
-            targetCtx.strokeText(topVal, w / 2, centerY);
-            targetCtx.fillText(topVal, w / 2, centerY);
+            targetCtx.strokeText(topVal, drawX, drawY);
+            targetCtx.fillText(topVal, drawX, drawY);
           }
         }
       } else {
         targetCtx.textAlign = 'center';
         if (topVal) {
-          const topY = borderStyle !== 'none'
+          let drawX = gifTextOffsets.top.x !== null ? gifTextOffsets.top.x * scaleFactor : w / 2;
+          let drawY = gifTextOffsets.top.y !== null ? gifTextOffsets.top.y * scaleFactor : (borderStyle !== 'none'
             ? fontScaledSize + (12 * scaleFactor)
-            : fontScaledSize + (4 * scaleFactor);
+            : fontScaledSize + (4 * scaleFactor));
           if (mode === 'triggered') {
             targetCtx.fillStyle = 'rgba(220, 38, 38, 0.9)';
-            targetCtx.fillRect(0, topY - fontScaledSize, w, fontScaledSize + (10 * scaleFactor));
+            targetCtx.fillRect(0, drawY - fontScaledSize, w, fontScaledSize + (10 * scaleFactor));
             targetCtx.fillStyle = '#ffffff';
-            targetCtx.fillText(topVal, w / 2, topY);
+            targetCtx.fillText(topVal, drawX, drawY);
           } else {
-            targetCtx.strokeText(topVal, w / 2, topY);
-            targetCtx.fillText(topVal, w / 2, topY);
+            targetCtx.strokeText(topVal, drawX, drawY);
+            targetCtx.fillText(topVal, drawX, drawY);
           }
         }
 
         if (bottomVal) {
-          const bottomY = borderStyle === 'polaroid'
+          let drawX = gifTextOffsets.bottom.x !== null ? gifTextOffsets.bottom.x * scaleFactor : w / 2;
+          let drawY = gifTextOffsets.bottom.y !== null ? gifTextOffsets.bottom.y * scaleFactor : (borderStyle === 'polaroid'
             ? h - (35 * scaleFactor)
-            : h - (8 * scaleFactor);
+            : h - (8 * scaleFactor));
           if (mode === 'triggered' && !topVal) {
             targetCtx.fillStyle = 'rgba(220, 38, 38, 0.9)';
-            targetCtx.fillRect(0, bottomY - fontScaledSize, w, fontScaledSize + (10 * scaleFactor));
+            targetCtx.fillRect(0, drawY - fontScaledSize, w, fontScaledSize + (10 * scaleFactor));
             targetCtx.fillStyle = '#ffffff';
-            targetCtx.fillText(bottomVal, w / 2, bottomY);
+            targetCtx.fillText(bottomVal, drawX, drawY);
           } else {
-            targetCtx.strokeText(bottomVal, w / 2, bottomY);
-            targetCtx.fillText(bottomVal, w / 2, bottomY);
+            targetCtx.strokeText(bottomVal, drawX, drawY);
+            targetCtx.fillText(bottomVal, drawX, drawY);
           }
         }
       }
